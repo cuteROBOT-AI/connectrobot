@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import logo from "../../imports/cuteROBOT_logo_solid-2.svg?url";
+import logo from "../../imports/cuterobot_logo_reverse.svg?url";
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
@@ -15,7 +15,7 @@ export function NavBar() {
     <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0b0f17]/70 border-b border-white/5">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2">
-          <img src={logo} alt="cuterobot.ai" className="h-4" style={{ filter: "brightness(0) invert(1)" }} />
+          <img src={logo} alt="cuterobot.ai" className="h-4" />
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-white/70">

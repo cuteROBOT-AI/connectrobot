@@ -43,7 +43,7 @@ export function CTA() {
                 alt=""
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="h-[320px] drop-shadow-[0_20px_40px_rgba(34,211,238,0.3)]"
+                className="h-[280px] drop-shadow-[0_20px_40px_rgba(34,211,238,0.3)]"
               />
             </div>
           </div>
