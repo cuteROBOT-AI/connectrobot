@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import videoSrc from "../../imports/LeadROBOT-Trailer-v1.mp4";
+import videoSrc from "../../imports/LeadROBOT-Trailer-v4.mp4";
 
 interface VideoModalProps {
   isOpen: boolean;

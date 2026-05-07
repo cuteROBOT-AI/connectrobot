@@ -2,7 +2,7 @@ import { TrendingUp, PhoneIncoming, Zap, Clock } from "lucide-react";
 
 const metrics = [
   { icon: TrendingUp, value: "$7,200", label: "in captured revenue / mo avg" },
-  { icon: PhoneIncoming, value: "100%", label: "of calls answered" },
+  { icon: PhoneIncoming, value: "0%", label: "missed customer calls" },
   { icon: Zap, value: "Days", label: "to deploy, not months" },
   { icon: Clock, value: "24/7", label: "always-on coverage" },
 ];
