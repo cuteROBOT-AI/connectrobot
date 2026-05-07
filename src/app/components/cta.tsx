@@ -3,7 +3,11 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import robot from "../../imports/happy_bot_teal2.png";
 
-export function CTA() {
+interface CTAProps {
+  onOpenVideo: () => void;
+}
+
+export function CTA({ onOpenVideo }: CTAProps) {
   return (
     <section id="cta" className="bg-[#0b0f17] text-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 pb-24">
@@ -21,13 +25,13 @@ export function CTA() {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <a
-                  href="#"
+                <button
+                  onClick={onOpenVideo}
                   className="group inline-flex items-center justify-center gap-2 bg-[#caff5a] text-[#0b0f17] px-6 py-3.5 rounded-full hover:shadow-[0_0_32px_rgba(202,255,90,0.5)] transition-all"
                 >
-                  Get Started
+                  Take a look
                   <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
-                </a>
+                </button>
                 <a
                   href="#"
                   className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"

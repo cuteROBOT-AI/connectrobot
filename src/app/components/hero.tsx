@@ -3,7 +3,11 @@ import { motion } from "motion/react";
 import { ArrowRight, PhoneCall } from "lucide-react";
 import heroRobot from "../../imports/cuterobot_ball.png";
 
-export function Hero() {
+interface HeroProps {
+  onOpenVideo: () => void;
+}
+
+export function Hero({ onOpenVideo }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-[#0b0f17] text-white">
       <div className="absolute inset-0 pointer-events-none">
@@ -43,10 +47,10 @@ export function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3">
-            <a
-              href="#product"
+            <button
+              onClick={onOpenVideo}
               className="group inline-flex items-center justify-center gap-2 bg-[#caff5a] text-[#0b0f17] px-6 py-3.5 rounded-full hover:shadow-[0_0_32px_rgba(202,255,90,0.5)] transition-all"
-            >See LeadROBOT in Action<ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" /></a>
+            >See LeadROBOT in Action<ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" /></button>
             <a
               href="#cta"
               className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"

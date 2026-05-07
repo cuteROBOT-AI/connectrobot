@@ -7,7 +7,11 @@ const bullets = [
   "No missed opportunities",
 ];
 
-export function Product() {
+interface ProductProps {
+  onOpenVideo: () => void;
+}
+
+export function Product({ onOpenVideo }: ProductProps) {
   return (
     <section id="product" className="bg-[#f4f5f7] text-[#0b0f17]">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-24 grid lg:grid-cols-12 gap-12 items-center">
@@ -36,13 +40,13 @@ export function Product() {
             ))}
           </ul>
 
-          <a
-            href="#cta"
+          <button
+            onClick={onOpenVideo}
             className="mt-9 inline-flex items-center gap-2 bg-[#0b0f17] text-white px-6 py-3.5 rounded-full hover:bg-[#0b0f17]/90 transition-colors"
           >
             View Demo
             <ArrowUpRight size={18} />
-          </a>
+          </button>
         </div>
       </div>
     </section>
