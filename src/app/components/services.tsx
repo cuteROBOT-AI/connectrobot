@@ -27,7 +27,7 @@ export function Services() {
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-24">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           <div>
-            <div className="text-xs tracking-[0.18em] text-white/40 mb-4">◆ SERVICES</div>
+            <div className="text-xs tracking-[0.18em] text-white/40 mb-4">SERVICES</div>
             <h2 className="text-4xl md:text-5xl tracking-tight leading-[1.1] max-w-2xl" style={{ fontWeight: 600 }}>
               Built for ops. <span className="text-white/40">Tuned for revenue.</span>
             </h2>

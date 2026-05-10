@@ -11,7 +11,7 @@ export function Audience() {
   return (
     <section id="audience" className="bg-[#0b0f17] text-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-24">
-        <div className="text-xs tracking-[0.18em] text-white/40 mb-4">◆ WHO THIS IS FOR</div>
+        <div className="text-xs tracking-[0.18em] text-white/40 mb-4">WHO THIS IS FOR</div>
         <h2 className="text-4xl md:text-5xl tracking-tight" style={{ fontWeight: 600 }}>
           If a missed call is lost revenue — <span className="text-[#caff5a]">we're for you.</span>
         </h2>

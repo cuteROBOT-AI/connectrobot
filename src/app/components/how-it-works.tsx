@@ -11,7 +11,7 @@ export function HowItWorks() {
     <section id="how" className="bg-[#f4f5f7] text-[#0b0f17]">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-24">
         <div className="text-center mb-16">
-          <div className="text-xs tracking-[0.18em] text-[#0b0f17]/40 mb-4">◆ HOW IT WORKS</div>
+          <div className="text-xs tracking-[0.18em] text-[#0b0f17]/40 mb-4">HOW IT WORKS</div>
           <h2 className="text-4xl md:text-5xl tracking-tight" style={{ fontWeight: 600 }}>
             Three steps. Zero drama.
           </h2>
