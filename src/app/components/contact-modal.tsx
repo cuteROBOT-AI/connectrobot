@@ -163,7 +163,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                       Phone Number <span className="text-[#caff5a]">*</span>
                     </label>
                     <input
-                      type="tel"
+                      type="text"
                       id="phone"
                       required
                       value={formData.phone}
