@@ -206,7 +206,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     className="w-full bg-[#0b0f17] border border-white/15 text-white px-6 py-3 rounded-full hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ fontWeight: 500 }}
                   >
-                    {isSubmitting ? "SENDING..." : "SEND IT!"}
+                    {isSubmitting ? "THERE IT GOES..." : "SEND IT!"}
                   </button>
                 </form>
               )}
@@ -215,7 +215,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
           <button
             onClick={onClose}
-            className="mt-8 flex items-center justify-center mx-auto w-10 h-10 rounded-full border border-white/60 text-white/60 hover:text-white hover:border-white transition-colors"
+            className="mt-8 flex items-center justify-center mx-auto w-10 h-10 rounded-full border border-white/10 text-white/10 hover:text-white hover:border-white transition-colors"
           >
             <X size={16} />
           </button>
