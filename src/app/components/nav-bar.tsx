@@ -2,7 +2,11 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "../../imports/cuterobot_logo_reverse.svg?url";
 
-export function NavBar() {
+interface NavBarProps {
+  onOpenContact: () => void;
+}
+
+export function NavBar({ onOpenContact }: NavBarProps) {
   const [open, setOpen] = useState(false);
   const links = [
     { label: "Product", href: "#product" },
@@ -27,15 +31,15 @@ export function NavBar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <a href="#cta" className="text-sm text-white/80 hover:text-white px-3 py-2">
+          {/*<a href="#cta" className="text-sm text-white/80 hover:text-white px-3 py-2">
             Sign in
-          </a>
-          <a
-            href="#cta"
+          </a>*/}
+          <button
+            onClick={onOpenContact}
             className="text-sm bg-[#caff5a] text-[#0b0f17] px-4 py-2 rounded-full hover:shadow-[0_0_24px_rgba(202,255,90,0.45)] transition-shadow"
           >
             Book a Call
-          </a>
+          </button>
         </div>
 
         <button
@@ -54,13 +58,15 @@ export function NavBar() {
               {l.label}
             </a>
           ))}
-          <a
-            href="#cta"
+          <button
+            onClick={() => {
+              setOpen(false);
+              onOpenContact();
+            }}
             className="bg-[#caff5a] text-[#0b0f17] px-4 py-2 rounded-full text-center"
-            onClick={() => setOpen(false)}
           >
             Book a Call
-          </a>
+          </button>
         </div>
       )}
     </header>

@@ -14,18 +14,20 @@ export function VideoModal({ isOpen, onClose }: VideoModalProps) {
     if (isOpen) {
       document.body.style.overflow = "hidden";
       if (videoRef.current) {
-        videoRef.current.play();
+        videoRef.current.play().catch(() => {
+          // Ignore play errors
+        });
       }
     } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
       document.body.style.overflow = "unset";
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
       }
-    }
-
-    return () => {
-      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 

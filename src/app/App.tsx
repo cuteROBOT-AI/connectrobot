@@ -9,10 +9,12 @@ import { Audience } from "./components/audience";
 import { CTA } from "./components/cta";
 import { Footer } from "./components/footer";
 import { VideoModal } from "./components/video-modal";
+import { ContactModal } from "./components/contact-modal";
 import favicon from "../imports/cuteROBOT_mark_reverse-2.svg?url";
 
 export default function App() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
 
   useEffect(() => {
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
@@ -27,19 +29,22 @@ export default function App() {
 
   const openVideo = () => setIsVideoOpen(true);
   const closeVideo = () => setIsVideoOpen(false);
+  const openContact = () => setIsContactOpen(true);
+  const closeContact = () => setIsContactOpen(false);
 
   return (
     <div className="min-h-screen bg-[#0b0f17]">
-      <NavBar />
-      <Hero onOpenVideo={openVideo} />
+      <NavBar onOpenContact={openContact} />
+      <Hero onOpenVideo={openVideo} onOpenContact={openContact} />
       <MetricsBar />
       <Product onOpenVideo={openVideo} />
       <Services />
       <HowItWorks />
       <Audience />
-      <CTA onOpenVideo={openVideo} />
+      <CTA onOpenVideo={openVideo} onOpenContact={openContact} />
       <Footer />
       <VideoModal isOpen={isVideoOpen} onClose={closeVideo} />
+      <ContactModal isOpen={isContactOpen} onClose={closeContact} />
     </div>
   );
 }

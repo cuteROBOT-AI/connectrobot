@@ -1,4 +1,4 @@
-import { Twitter, Linkedin, Github } from "lucide-react";
+import { Twitter, Linkedin, Github, Phone } from "lucide-react";
 import logo from "../../imports/cuteROBOT_logo_solid.svg?url";
 import logoMark from "../../imports/cuteROBOT_mark_reverse-2.svg?url";
 
@@ -28,7 +28,6 @@ export function Footer() {
           <ul className="space-y-2 text-sm text-white/60">
             <li><a href="#">About</a></li>
             <li><a href="#">Contact</a></li>
-            <li></li>
           </ul>
         </div>
 
@@ -45,6 +44,7 @@ export function Footer() {
               </a>
             ))}
           </div>
+          <p style={{ marginTop: "22px" }}><a href="tel:+18787876268" className="group hover:text-[#caff5a] transition-colors inline-flex items-center gap-2"><Phone size={14} /><span className="group-hover:hidden">(878) 78-ROBOT</span><span className="hidden group-hover:inline">(878) 787-6268</span></a></p>
         </div>
       </div>
 

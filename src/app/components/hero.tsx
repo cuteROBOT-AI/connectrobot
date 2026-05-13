@@ -5,9 +5,10 @@ import heroRobot from "../../imports/cuterobot_ball.png";
 
 interface HeroProps {
   onOpenVideo: () => void;
+  onOpenContact: () => void;
 }
 
-export function Hero({ onOpenVideo }: HeroProps) {
+export function Hero({ onOpenVideo, onOpenContact }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-[#0b0f17] text-white">
       <div className="absolute inset-0 pointer-events-none">
@@ -51,21 +52,20 @@ export function Hero({ onOpenVideo }: HeroProps) {
               onClick={onOpenVideo}
               className="group inline-flex items-center justify-center gap-2 bg-[#caff5a] text-[#0b0f17] px-6 py-3.5 rounded-full hover:shadow-[0_0_32px_rgba(202,255,90,0.5)] transition-all"
             >See LeadROBOT in Action<ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" /></button>
-            <a
-              href="#cta"
+            <button
+              onClick={onOpenContact}
               className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"
             >
               <PhoneCall size={16} />
               Book a Call
-            </a>
+            </button>
           </div>
 
-          <div className="mt-10 flex items-center gap-6 text-xs text-white/40">
-            <span>Trusted by</span>
-            <span className="tracking-widest">NORTHWIND</span>
-            <span className="tracking-widest hidden sm:inline">ATLAS&CO</span>
-            <span className="tracking-widest hidden md:inline">HELIOS</span>
-          </div>
+          {/*<div className="mt-10 flex items-center gap-6 text-xs text-white/40">
+            <span>Trusted by:</span>
+            <span className="tracking-widest">Perfume Therapy</span>
+            <span className="tracking-widest hidden sm:inline">Jose Canales Landscaping</span>
+          </div>*/}
         </div>
 
         <div className="lg:col-span-6 relative flex justify-center items-end">
@@ -83,14 +83,14 @@ export function Hero({ onOpenVideo }: HeroProps) {
             />
           </motion.div>
 
-          <div className="absolute top-6 left-6 hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md text-xs">
+          {/*<div className="absolute top-6 left-6 hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md text-xs">
             <span className="w-2 h-2 rounded-full bg-[#caff5a]" />
             Live · Call answered in 0.4s
           </div>
           <div className="absolute bottom-10 right-2 hidden md:block px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md text-xs">
             <div className="text-white/60">New lead captured</div>
             <div className="text-[#caff5a]">+ $1,240 pipeline</div>
-          </div>
+          </div>*/}
         </div>
       </div>
     </section>

@@ -5,9 +5,10 @@ import robot from "../../imports/happy_bot_teal2.png";
 
 interface CTAProps {
   onOpenVideo: () => void;
+  onOpenContact: () => void;
 }
 
-export function CTA({ onOpenVideo }: CTAProps) {
+export function CTA({ onOpenVideo, onOpenContact }: CTAProps) {
   return (
     <section id="cta" className="bg-[#0b0f17] text-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 pb-24">
@@ -32,12 +33,12 @@ export function CTA({ onOpenVideo }: CTAProps) {
                   Take a look
                   <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
-                <a
-                  href="#"
+                <button
+                  onClick={onOpenContact}
                   className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"
                 >
                   Book a Demo
-                </a>
+                </button>
               </div>
             </div>
 
