@@ -81,14 +81,6 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
         className="relative w-full max-w-lg mx-4 bg-[#0f1421] border border-white/10 rounded-3xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors"
-          aria-label="Close"
-        >
-          <X size={32} />
-        </button>
-
         <div className="p-8 lg:p-10">
           {isSuccess ? (
             <div className="text-center py-8">
@@ -119,7 +111,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 </a>
               ) : (
                 <div className="mt-8 text-center">
-                  <p className="text-white/70 text-base mb-4">
+                  <p className="text-white/ text-base mb-4 text-[#417092]">
                     Call Deb, our virtual assistant at:
                   </p>
                   <a
@@ -220,6 +212,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
               )}
             </>
           )}
+
+          <button
+            onClick={onClose}
+            className="mt-8 flex items-center justify-center mx-auto w-10 h-10 rounded-full border border-white/60 text-white/60 hover:text-white hover:border-white transition-colors"
+          >
+            <X size={16} />
+          </button>
         </div>
       </div>
     </div>
