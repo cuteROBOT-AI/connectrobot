@@ -21,7 +21,7 @@ export function Product({ onOpenVideo }: ProductProps) {
 
         <div className="lg:col-span-5 order-1 lg:order-2">
           <div className="inline-block text-xs tracking-[0.18em] text-[#0b0f17]/50 mb-4">
-            PRODUCT
+            FEATURED
           </div>
           <h2 className="text-4xl md:text-5xl tracking-tight leading-[1.1]" style={{ fontWeight: 600 }}>Meet Lead<span className="text-[#0b0f17]" style={{ fontWeight: 200 }}>ROBOT</span></h2>
           <p className="mt-5 text-lg text-[#0b0f17]/60 leading-relaxed">
