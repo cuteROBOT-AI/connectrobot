@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Phone, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Phone, ChevronDown, ChevronUp, Check } from "lucide-react";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -41,8 +41,10 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     try {
       const response = await fetch("https://n8n.cuterobot.ai/webhook-test/b2f6d410-939e-4f68-8532-676c5a4770e5", {
         method: "POST",
+        mode: "cors",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -62,7 +64,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
       }
     } catch (error) {
       console.error("Form submission error:", error);
-      alert("Failed to submit form. Please try again.");
+      alert("Failed to submit form. Please try calling us directly at 878-787-6268.");
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +91,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
           {isSuccess ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-[#caff5a]/20 flex items-center justify-center mx-auto mb-6">
-                <div className="w-8 h-8 rounded-full bg-[#caff5a]"></div>
+                <Check size={40} className="text-[#caff5a]" strokeWidth={3} />
               </div>
               <h2 className="text-3xl md:text-4xl text-white tracking-tight mb-4" style={{ fontWeight: 600 }}>
                 Success!
@@ -101,7 +103,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
           ) : (
             <>
               <h2 className="text-3xl md:text-4xl text-white tracking-tight" style={{ fontWeight: 600 }}>
-                Let's get this started
+                Let's get this project started
               </h2>
 
               {isMobile ? (
@@ -145,7 +147,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   <div>
                     <label htmlFor="fullName" className="block text-sm text-white/60 mb-1.5">
-                      Full name <span className="text-[#caff5a]">*</span>
+                      Full Name <span className="text-[#caff5a]">*</span>
                     </label>
                     <input
                       type="text"
@@ -166,10 +168,13 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                       type="text"
                       id="phone"
                       required
+                      minLength={10}
+                      pattern="[\d\s\-\.\(\)]+.*"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#caff5a]/50 transition-colors"
                       placeholder="(555) 123-4567"
+                      title="Please enter a valid phone number (at least 10 characters)"
                     />
                   </div>
 
