@@ -63,7 +63,7 @@ export default function App() {
   });
 
 
-  const widget = <elevenlabs-convai agent-id="agent_7701krf3p5nyfj8sba8qxt0baf2g" />;
+  const widget = <div className="hidden md:block"><elevenlabs-convai agent-id="agent_7701krf3p5nyfj8sba8qxt0baf2g" /></div>;
 
   if (path === "/privacy") return <>{<PrivacyPage />}{widget}</>;
   if (path === "/terms") return <>{<TermsPage />}{widget}</>;
@@ -86,7 +86,7 @@ export default function App() {
       <Footer onOpenContact={openContact} />
       <VideoModal isOpen={isVideoOpen} onClose={closeVideo} />
       <ContactModal isOpen={isContactOpen} onClose={closeContact} />
-      <elevenlabs-convai agent-id="agent_7701krf3p5nyfj8sba8qxt0baf2g" />
+      <div className="hidden md:block"><elevenlabs-convai agent-id="agent_7701krf3p5nyfj8sba8qxt0baf2g" /></div>
     </div>
   );
 }
