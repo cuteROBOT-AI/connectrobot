@@ -37,7 +37,7 @@ export function CTA({ onOpenVideo, onOpenContact }: CTAProps) {
                   onClick={onOpenContact}
                   className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"
                 >
-                  Book a Demo
+                  Book a Call
                 </button>
               </div>
             </div>

@@ -57,10 +57,10 @@ export function Services() {
                 {s.title}
               </h3>
               <p className="text-white/55 leading-relaxed relative">{s.desc}</p>
-              <div className="mt-6 flex items-center gap-1 text-sm text-white/70 group-hover:text-white relative">
+              {/*<div className="mt-6 flex items-center gap-1 text-sm text-white/70 group-hover:text-white relative">
                 Learn more
                 <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
+              </div>*/}
             </div>
           ))}
         </div>
