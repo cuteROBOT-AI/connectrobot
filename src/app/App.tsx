@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "elevenlabs-convai": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & { "agent-id": string }, HTMLElement>;
+    }
+  }
+}
 import { NavBar } from "./components/nav-bar";
 import { Hero } from "./components/hero";
 import { MetricsBar } from "./components/metrics-bar";
@@ -31,6 +39,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (document.querySelector('script[src*="elevenlabs/convai-widget-embed"]')) return;
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
+    script.async = true;
+    script.type = "text/javascript";
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
     const onPop = () => setPath(window.location.pathname);
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -46,8 +63,10 @@ export default function App() {
   });
 
 
-  if (path === "/privacy") return <PrivacyPage />;
-  if (path === "/terms") return <TermsPage />;
+  const widget = <elevenlabs-convai agent-id="agent_7701krf3p5nyfj8sba8qxt0baf2g" />;
+
+  if (path === "/privacy") return <>{<PrivacyPage />}{widget}</>;
+  if (path === "/terms") return <>{<TermsPage />}{widget}</>;
 
   const openVideo = () => setIsVideoOpen(true);
   const closeVideo = () => setIsVideoOpen(false);
@@ -67,6 +86,7 @@ export default function App() {
       <Footer onOpenContact={openContact} />
       <VideoModal isOpen={isVideoOpen} onClose={closeVideo} />
       <ContactModal isOpen={isContactOpen} onClose={closeContact} />
+      <elevenlabs-convai agent-id="agent_7701krf3p5nyfj8sba8qxt0baf2g" />
     </div>
   );
 }
