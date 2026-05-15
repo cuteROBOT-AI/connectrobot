@@ -10,11 +10,14 @@ import { CTA } from "./components/cta";
 import { Footer } from "./components/footer";
 import { VideoModal } from "./components/video-modal";
 import { ContactModal } from "./components/contact-modal";
+import { PrivacyPage } from "./components/privacy-page";
+import { TermsPage } from "./components/terms-page";
 import favicon from "../imports/cuteROBOT_mark_reverse-2.svg?url";
 
 export default function App() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [path, setPath] = useState(window.location.pathname);
 
   useEffect(() => {
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
@@ -26,6 +29,15 @@ export default function App() {
     link.type = "image/svg+xml";
     link.href = favicon;
   }, []);
+
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  if (path === "/privacy") return <PrivacyPage />;
+  if (path === "/terms") return <TermsPage />;
 
   const openVideo = () => setIsVideoOpen(true);
   const closeVideo = () => setIsVideoOpen(false);

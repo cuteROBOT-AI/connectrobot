@@ -52,8 +52,8 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row gap-3 justify-between text-xs text-white/40">
           <div>© {new Date().getFullYear()} cuteROBOT AI Agency — All systems operational.</div>
           <div className="flex gap-5">
-            <a href="#">Terms</a>
-            <a href="#">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
           </div>
         </div>
       </div>

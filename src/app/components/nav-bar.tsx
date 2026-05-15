@@ -8,17 +8,19 @@ interface NavBarProps {
 
 export function NavBar({ onOpenContact }: NavBarProps) {
   const [open, setOpen] = useState(false);
+  const isHome = window.location.pathname === "/";
+  const anchor = (hash: string) => isHome ? hash : `/${hash}`;
   const links = [
-    { label: "Product", href: "#product" },
-    { label: "Services", href: "#services" },
-    { label: "How it works", href: "#how" },
-    { label: "Made for you", href: "#audience" },
+    { label: "Product", href: anchor("#product") },
+    { label: "Services", href: anchor("#services") },
+    { label: "How it works", href: anchor("#how") },
+    { label: "Made for you", href: anchor("#audience") },
   ];
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0b0f17]/70 border-b border-white/5">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <img src={logo} alt="cuterobot.ai" className="h-4" />
         </a>
 
