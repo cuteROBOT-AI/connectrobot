@@ -25,11 +25,25 @@ export function NavBar({ onOpenContact }: NavBarProps) {
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-white/70">
-          {links.map((l) => (
-            <a key={l.href} href={l.href} className="hover:text-white transition-colors">
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) => {
+            const hash = l.href.startsWith("/") ? l.href.slice(1) : l.href;
+            return (
+              <a
+                key={l.href}
+                href={l.href}
+                className="hover:text-white transition-colors"
+                onClick={(e) => {
+                  const target = document.querySelector(hash);
+                  if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+              >
+                {l.label}
+              </a>
+            );
+          })}
         </nav>
 
         <div className="hidden md:flex items-center gap-3">

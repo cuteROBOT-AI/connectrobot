@@ -36,6 +36,16 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const target = document.querySelector(hash);
+    if (target) {
+      target.scrollIntoView({ behavior: "instant" });
+    }
+  });
+
+
   if (path === "/privacy") return <PrivacyPage />;
   if (path === "/terms") return <TermsPage />;
 
