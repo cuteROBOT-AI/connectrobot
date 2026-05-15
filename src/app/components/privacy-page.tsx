@@ -101,7 +101,7 @@ export function PrivacyPage() {
 
       </div>
 
-      <Footer />
+      <Footer onOpenContact={() => setIsContactOpen(true)} />
     </div>
   );
 }

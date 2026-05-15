@@ -64,7 +64,7 @@ export default function App() {
       <HowItWorks />
       <Audience />
       <CTA onOpenVideo={openVideo} onOpenContact={openContact} />
-      <Footer />
+      <Footer onOpenContact={openContact} />
       <VideoModal isOpen={isVideoOpen} onClose={closeVideo} />
       <ContactModal isOpen={isContactOpen} onClose={closeContact} />
     </div>

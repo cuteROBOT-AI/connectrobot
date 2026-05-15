@@ -111,7 +111,7 @@ export function TermsPage() {
 
       </div>
 
-      <Footer />
+      <Footer onOpenContact={() => setIsContactOpen(true)} />
     </div>
   );
 }
