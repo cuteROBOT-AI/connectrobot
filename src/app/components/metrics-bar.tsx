@@ -1,10 +1,10 @@
 import { TrendingUp, PhoneIncoming, Zap, Clock } from "lucide-react";
 
 const metrics = [
-  { icon: TrendingUp, value: "$7,200", label: "in captured revenue / mo avg" },
-  { icon: PhoneIncoming, value: "0%", label: "missed customer calls" },
-  { icon: Zap, value: "Days", label: "to deploy, not months" },
-  { icon: Clock, value: "24/7", label: "always-on coverage" },
+  { icon: PhoneIncoming, value: "Always available", label: "even after hours" },
+  { icon: TrendingUp, value: "Every opportunity", label: "captured automatically" },
+  { icon: Zap, value: "Deploy in days", label: "fully customized" },
+  { icon: Clock, value: "Book appointments", label: "while you work" },
 ];
 
 export function MetricsBar() {
