@@ -107,8 +107,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   style={{ fontWeight: 500 }}
                 >
                   <Phone size={20} />
-                  (878) 787-6268<br />
-                  Talk to Deb, our friendly virtual assistant
+                  Deb, our friendly virtual assistant, is happy to take your call
                 </a>
               ) : (
                 <div className="mt-8 text-center">
