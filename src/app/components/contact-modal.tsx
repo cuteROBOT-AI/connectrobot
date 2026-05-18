@@ -107,6 +107,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   style={{ fontWeight: 500 }}
                 >
                   <Phone size={20} />
+                  (878) 787-6268<br />
                   Talk to Deb, our friendly virtual assistant
                 </a>
               ) : (
@@ -215,7 +216,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
           <button
             onClick={onClose}
-            className="mt-8 flex items-center justify-center mx-auto w-10 h-10 rounded-full border border-white/10 text-white/10 hover:text-white hover:border-white transition-colors"
+            className="mt-8 flex items-center justify-center mx-auto w-10 h-10 rounded-full border border-white/30 text-white/30 hover:text-white hover:border-white transition-colors"
           >
             <X size={16} />
           </button>
