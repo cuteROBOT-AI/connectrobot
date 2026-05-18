@@ -81,7 +81,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
         className="relative w-full max-w-lg mx-4 bg-[#0f1421] border border-white/10 rounded-3xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-8 lg:p-10">
+        <div className="p-8 lg:p-10 mb-[42px] lg:mb-0">
           {isSuccess ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-[#caff5a]/20 flex items-center justify-center mx-auto mb-6">
