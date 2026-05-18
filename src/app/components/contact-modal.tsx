@@ -107,7 +107,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   style={{ fontWeight: 500 }}
                 >
                   <Phone size={20} />
-                  Deb, our friendly virtual assistant, is happy to take your call
+                  Call our friendly virtual assistant
                 </a>
               ) : (
                 <div className="mt-8 text-center">
