@@ -39,6 +39,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    document.title = "AI that works. For you.";
+  }, []);
+
+  useEffect(() => {
     if (document.querySelector('script[src*="elevenlabs/convai-widget-embed"]')) return;
     const script = document.createElement("script");
     script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
