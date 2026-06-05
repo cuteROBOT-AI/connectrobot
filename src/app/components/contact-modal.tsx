@@ -140,9 +140,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
               {isFormExpanded && (
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   <div>
-                    <label htmlFor="fullName" className="block text-sm text-white/60 mb-1.5">
-                      Full Name <span className="text-[#caff5a]">*</span>
-                    </label>
+                    <label htmlFor="fullName" className="block text-sm text-white/60 mb-1.5">Your Name <span className="text-[#caff5a]">*</span></label>
                     <input
                       type="text"
                       id="fullName"
