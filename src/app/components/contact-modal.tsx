@@ -159,7 +159,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                       How can we reach you? <span className="text-[#caff5a]">*</span>
                     </p>
                     <p className="text-xs text-white/50 italic mb-3">
-                      Provide at least one: phone number or email address
+                      Provide either a phone number or email address
                     </p>
                   </div>
 
