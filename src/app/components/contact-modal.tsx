@@ -154,14 +154,22 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     />
                   </div>
 
+                  <div className="pt-6">
+                    <p className="text-sm text-white mb-1" style={{ fontWeight: 500 }}>
+                      How can we reach you? <span className="text-[#caff5a]">*</span>
+                    </p>
+                    <p className="text-xs text-white/50 italic mb-3">
+                      Provide at least one: phone number or email address
+                    </p>
+                  </div>
+
                   <div>
                     <label htmlFor="phone" className="block text-sm text-white/60 mb-1.5">
-                      Phone Number <span className="text-[#caff5a]">*</span>
+                      Phone Number
                     </label>
                     <input
                       type="text"
                       id="phone"
-                      required
                       minLength={10}
                       pattern="[\d\s\-\.\(\)]+.*"
                       value={formData.phone}
@@ -172,7 +180,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     />
                   </div>
 
-                  <div>
+                  <div className="mb-9">
                     <label htmlFor="email" className="block text-sm text-white/60 mb-1.5">
                       Email
                     </label>
@@ -202,7 +210,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !formData.fullName.trim() || (!formData.phone.trim() && !formData.email.trim())}
                     className="w-full bg-[#0b0f17] border border-white/15 text-white px-6 py-3 rounded-full hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ fontWeight: 500 }}
                   >
