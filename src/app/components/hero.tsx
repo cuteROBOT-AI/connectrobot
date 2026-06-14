@@ -38,8 +38,7 @@ export function Hero({ onOpenVideo, onOpenContact }: HeroProps) {
           >
             AI that works.
             <br />
-            <span className="text-white/40">For</span>{" "}
-            <span className="text-[#caff5a]">you.</span>
+            <span className="text-[#caff5a]">For you.</span>
           </h1>
 
           <p className="mt-6 text-lg text-white/60 max-w-xl leading-relaxed">
