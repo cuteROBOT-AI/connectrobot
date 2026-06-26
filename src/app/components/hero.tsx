@@ -29,7 +29,7 @@ export function Hero({ onOpenVideo, onOpenContact }: HeroProps) {
         <div className="lg:col-span-6 z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03] text-xs text-white/70 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#caff5a] animate-pulse" />
-            Now answering calls in 12 industries
+            Every conversation becomes an organized lead
           </div>
 
           <h1
