@@ -1,6 +1,6 @@
 import image_hero_cuteROBOT_radial_2x_1 from '@/imports/hero_cuteROBOT_radial_2x-1.png'
 import { motion } from "motion/react";
-import { ArrowRight, PhoneCall } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import heroRobot from "../../imports/cuterobot_ball.png";
 
 interface HeroProps {
@@ -51,13 +51,15 @@ export function Hero({ onOpenVideo, onOpenContact }: HeroProps) {
               onClick={onOpenVideo}
               className="group inline-flex items-center justify-center gap-2 bg-[#caff5a] text-[#0b0f17] px-6 py-3.5 rounded-full hover:shadow-[0_0_32px_rgba(202,255,90,0.5)] transition-all"
             >See LeadROBOT in Action<ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" /></button>
-            <button
-              onClick={onOpenContact}
+            <a
+              href="https://www.leadrobot.app/public/home"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"
             >
-              <PhoneCall size={16} />
-              Book a Call
-            </button>
+              <ExternalLink size={16} />
+              Learn More
+            </a>
           </div>
 
           {/*<div className="mt-10 flex items-center gap-6 text-xs text-white/40">

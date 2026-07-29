@@ -1,4 +1,4 @@
-import { Check, ArrowUpRight, Phone, MessageSquare, Activity } from "lucide-react";
+import { Check, ArrowUpRight, Phone, MessageSquare, Activity, ExternalLink } from "lucide-react";
 
 const bullets = [
   "Answers calls 24/7",
@@ -40,13 +40,24 @@ export function Product({ onOpenVideo }: ProductProps) {
             ))}
           </ul>
 
-          <button
-            onClick={onOpenVideo}
-            className="mt-9 inline-flex items-center gap-2 bg-[#0b0f17] text-white px-6 py-3.5 rounded-full hover:bg-[#0b0f17]/90 transition-colors"
-          >
-            View Demo
-            <ArrowUpRight size={18} />
-          </button>
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <button
+              onClick={onOpenVideo}
+              className="inline-flex items-center gap-2 bg-[#0b0f17] text-white px-6 py-3.5 rounded-full hover:bg-[#0b0f17]/90 transition-colors"
+            >
+              View Demo
+              <ArrowUpRight size={18} />
+            </button>
+            <a
+              href="https://www.leadrobot.app/public/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 border border-[#0b0f17]/20 text-[#0b0f17] px-6 py-3.5 rounded-full hover:bg-[#0b0f17]/5 transition-colors"
+            >
+              <ExternalLink size={16} />
+              Learn More
+            </a>
+          </div>
         </div>
       </div>
     </section>

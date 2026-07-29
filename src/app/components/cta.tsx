@@ -1,6 +1,6 @@
 import image_leadrobot_hero from '@/imports/leadrobot_hero.png'
 import { motion } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import robot from "../../imports/happy_bot_teal2.png";
 
 interface CTAProps {
@@ -33,12 +33,15 @@ export function CTA({ onOpenVideo, onOpenContact }: CTAProps) {
                   Take a look
                   <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
-                <button
-                  onClick={onOpenContact}
+                <a
+                  href="https://www.leadrobot.app/public/home"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 border border-white/15 text-white px-6 py-3.5 rounded-full hover:bg-white/5 transition-colors"
                 >
-                  Book a Call
-                </button>
+                  <ExternalLink size={16} />
+                  Learn More
+                </a>
               </div>
             </div>
 

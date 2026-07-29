@@ -7,7 +7,7 @@ interface ContactModalProps {
 }
 
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
-  const [isFormExpanded, setIsFormExpanded] = useState(false);
+  const [isFormExpanded, setIsFormExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
