@@ -16,6 +16,19 @@ export interface NetworkingDnaPipeline {
   recentMessageLimit: number;
 }
 
+export type NetworkingDnaMessageTimingStage =
+  | "session_history_retrieval"
+  | "scenario_interpreter"
+  | "scenario_upsert"
+  | "preview_referral_candidates"
+  | "final_reasoner"
+  | "session_message_persistence";
+
+export interface NetworkingDnaMessageTimingOptions {
+  now?: () => number;
+  onTiming?: (stage: NetworkingDnaMessageTimingStage, elapsedMs: number) => void;
+}
+
 export async function createNetworkingDnaSession(
   repository: SessionRepository,
   initialSummary?: string,
@@ -27,40 +40,63 @@ export async function processNetworkingDnaMessage(
   sessionId: string,
   message: string,
   pipeline: NetworkingDnaPipeline,
+  timing: NetworkingDnaMessageTimingOptions = {},
 ): Promise<NetworkingDnaResponse> {
-  const session = await pipeline.repository.getSession(sessionId);
-  const recentMessages = await pipeline.repository.listRecentMessages(
-    sessionId,
-    pipeline.recentMessageLimit,
+  const { session, recentMessages } = await measurePipelineStage(
+    timing,
+    "session_history_retrieval",
+    async () => {
+      const session = await pipeline.repository.getSession(sessionId);
+      const recentMessages = await pipeline.repository.listRecentMessages(
+        sessionId,
+        pipeline.recentMessageLimit,
+      );
+      return { session, recentMessages };
+    },
   );
 
-  await pipeline.repository.saveMessage(session.id, "user", message);
+  await measurePipelineStage(timing, "session_message_persistence", () =>
+    pipeline.repository.saveMessage(session.id, "user", message),
+  );
 
   const conversation: ConversationMessage[] = [
     ...recentMessages,
     { role: "user", content: message },
   ];
 
-  const structuredContext = await pipeline.scenarioInterpreter.interpret({
-    previousContext: parsePreviousContext(session.current_structured_context),
-    messages: conversation,
-  });
+  const structuredContext = await measurePipelineStage(
+    timing,
+    "scenario_interpreter",
+    () =>
+      pipeline.scenarioInterpreter.interpret({
+        previousContext: parsePreviousContext(session.current_structured_context),
+        messages: conversation,
+      }),
+  );
 
-  await pipeline.repository.upsertCurrentScenario(session.id, structuredContext);
+  await measurePipelineStage(timing, "scenario_upsert", () =>
+    pipeline.repository.upsertCurrentScenario(session.id, structuredContext),
+  );
 
-  const candidates = await pipeline.repository.previewCandidates(structuredContext, 3);
-  const recommendationBoard = await pipeline.finalReasoner.buildBoard({
-    context: structuredContext,
-    candidates,
-  });
+  const candidates = await measurePipelineStage(timing, "preview_referral_candidates", () =>
+    pipeline.repository.previewCandidates(structuredContext, 3),
+  );
+  const recommendationBoard = await measurePipelineStage(timing, "final_reasoner", () =>
+    pipeline.finalReasoner.buildBoard({
+      context: structuredContext,
+      candidates,
+    }),
+  );
   const assistantMessage = buildAssistantMessage(recommendationBoard);
 
-  await pipeline.repository.updateSessionState(
-    session.id,
-    structuredContext,
-    recommendationBoard,
-  );
-  await pipeline.repository.saveMessage(session.id, "assistant", assistantMessage);
+  await measurePipelineStage(timing, "session_message_persistence", async () => {
+    await pipeline.repository.updateSessionState(
+      session.id,
+      structuredContext,
+      recommendationBoard,
+    );
+    await pipeline.repository.saveMessage(session.id, "assistant", assistantMessage);
+  });
 
   return NetworkingDnaResponseSchema.parse({
     session_id: session.id,
@@ -69,6 +105,23 @@ export async function processNetworkingDnaMessage(
     recommendation_board: recommendationBoard,
     open_questions: recommendationBoard.open_questions,
   });
+}
+
+async function measurePipelineStage<T>(
+  timing: NetworkingDnaMessageTimingOptions,
+  stage: NetworkingDnaMessageTimingStage,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const startedAt = getNow(timing);
+  try {
+    return await operation();
+  } finally {
+    timing.onTiming?.(stage, getNow(timing) - startedAt);
+  }
+}
+
+function getNow(timing: NetworkingDnaMessageTimingOptions): number {
+  return timing.now?.() ?? performance.now();
 }
 
 function parsePreviousContext(value: unknown): ScenarioContext | null {

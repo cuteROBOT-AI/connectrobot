@@ -1,6 +1,7 @@
 import { ZodError } from "zod/v4";
 
 import { isAuthorizedNetworkingDnaRequest, readNetworkingDnaEnv } from "../../server/networking-dna/env.js";
+import type { NetworkingDnaPipeline } from "../../server/networking-dna/pipeline.js";
 import { createDefaultNetworkingDnaPipeline } from "../../server/networking-dna/service.js";
 
 export function jsonResponse(body: unknown, status = 200): Response {
@@ -25,7 +26,11 @@ export async function parseJsonBody(request: Request): Promise<unknown> {
   }
 }
 
-export function createAuthorizedPipeline(request: Request) {
+type AuthorizedPipelineResult =
+  | { pipeline: NetworkingDnaPipeline }
+  | { response: Response };
+
+export function createAuthorizedPipeline(request: Request): AuthorizedPipelineResult {
   const apiKey = process.env.NETWORKING_DNA_API_KEY;
   if (!apiKey) {
     return {
