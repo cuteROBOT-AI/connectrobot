@@ -7,7 +7,7 @@
     "build": "vite build",
     "dev": "vite",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.vercel.json"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

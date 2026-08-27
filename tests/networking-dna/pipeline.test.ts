@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { buildDeterministicBoard } from "../../server/networking-dna/final-reasoner";
-import { processNetworkingDnaMessage } from "../../server/networking-dna/pipeline";
+import { buildDeterministicBoard } from "../../server/networking-dna/final-reasoner.js";
+import { processNetworkingDnaMessage } from "../../server/networking-dna/pipeline.js";
 import {
   CandidateScorerResultsSchema,
   ScenarioContextSchema,
@@ -9,8 +9,8 @@ import {
   type NetworkingSessionRow,
   type RecommendationBoard,
   type ScenarioContext,
-} from "../../server/networking-dna/schemas";
-import type { SessionRepository } from "../../server/networking-dna/session-repository";
+} from "../../server/networking-dna/schemas.js";
+import type { SessionRepository } from "../../server/networking-dna/session-repository.js";
 import fixture from "./fixtures/austin-family-business.json";
 
 describe("Networking DNA pipeline", () => {

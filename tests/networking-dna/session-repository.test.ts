@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 
-import { ScenarioContextSchema } from "../../server/networking-dna/schemas";
-import { SupabaseSessionRepository } from "../../server/networking-dna/session-repository";
+import { ScenarioContextSchema } from "../../server/networking-dna/schemas.js";
+import { SupabaseSessionRepository } from "../../server/networking-dna/session-repository.js";
 import fixture from "./fixtures/austin-family-business.json";
 
 describe("SupabaseSessionRepository schema contracts", () => {

@@ -1,12 +1,12 @@
-import { createNetworkingDnaSession } from "../../server/networking-dna/pipeline";
-import { NetworkingDnaCreateSessionRequestSchema } from "../../server/networking-dna/schemas";
+import { createNetworkingDnaSession } from "../../server/networking-dna/pipeline.js";
+import { NetworkingDnaCreateSessionRequestSchema } from "../../server/networking-dna/schemas.js";
 import {
   createAuthorizedPipeline,
   errorResponse,
   jsonResponse,
   methodNotAllowed,
   parseJsonBody,
-} from "./http";
+} from "./http.js";
 
 export default {
   async fetch(request: Request) {

@@ -1,12 +1,12 @@
-import { processNetworkingDnaMessage } from "../../../../server/networking-dna/pipeline";
-import { NetworkingDnaMessageRequestSchema } from "../../../../server/networking-dna/schemas";
+import { processNetworkingDnaMessage } from "../../../../server/networking-dna/pipeline.js";
+import { NetworkingDnaMessageRequestSchema } from "../../../../server/networking-dna/schemas.js";
 import {
   createAuthorizedPipeline,
   errorResponse,
   jsonResponse,
   methodNotAllowed,
   parseJsonBody,
-} from "../../http";
+} from "../../http.js";
 
 export default {
   async fetch(request: Request) {

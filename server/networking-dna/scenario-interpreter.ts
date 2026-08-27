@@ -6,7 +6,7 @@ import {
   createEmptyScenarioContext,
   type ConversationMessage,
   type ScenarioContext,
-} from "./schemas";
+} from "./schemas.js";
 
 export interface ScenarioInterpreterInput {
   previousContext: ScenarioContext | null;

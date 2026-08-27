@@ -1,7 +1,7 @@
 import { ZodError } from "zod/v4";
 
-import { isAuthorizedNetworkingDnaRequest, readNetworkingDnaEnv } from "../../server/networking-dna/env";
-import { createDefaultNetworkingDnaPipeline } from "../../server/networking-dna/service";
+import { isAuthorizedNetworkingDnaRequest, readNetworkingDnaEnv } from "../../server/networking-dna/env.js";
+import { createDefaultNetworkingDnaPipeline } from "../../server/networking-dna/service.js";
 
 export function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {

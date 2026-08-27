@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   buildDeterministicBoard,
   enforceCandidateGrounding,
-} from "../../server/networking-dna/final-reasoner";
+} from "../../server/networking-dna/final-reasoner.js";
 import {
   CandidateScorerResultsSchema,
   RecommendationBoardSchema,
   ScenarioContextSchema,
-} from "../../server/networking-dna/schemas";
+} from "../../server/networking-dna/schemas.js";
 import fixture from "./fixtures/austin-family-business.json";
 
 describe("Final Reasoner grounding", () => {

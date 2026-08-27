@@ -6,7 +6,7 @@ import {
   type CandidateScorerResult,
   type RecommendationBoard,
   type ScenarioContext,
-} from "./schemas";
+} from "./schemas.js";
 
 export interface FinalReasonerInput {
   context: ScenarioContext;

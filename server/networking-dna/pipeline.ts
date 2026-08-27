@@ -4,10 +4,10 @@ import {
   type ConversationMessage,
   type NetworkingDnaResponse,
   type ScenarioContext,
-} from "./schemas";
-import type { FinalReasoner } from "./final-reasoner";
-import type { ScenarioInterpreter } from "./scenario-interpreter";
-import type { SessionRepository } from "./session-repository";
+} from "./schemas.js";
+import type { FinalReasoner } from "./final-reasoner.js";
+import type { ScenarioInterpreter } from "./scenario-interpreter.js";
+import type { SessionRepository } from "./session-repository.js";
 
 export interface NetworkingDnaPipeline {
   repository: SessionRepository;

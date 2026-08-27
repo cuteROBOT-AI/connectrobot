@@ -10,7 +10,7 @@ import {
   type NetworkingSessionRow,
   type RecommendationBoard,
   type ScenarioContext,
-} from "./schemas";
+} from "./schemas.js";
 
 export interface SessionRepository {
   createSession(initialSummary?: string): Promise<string>;

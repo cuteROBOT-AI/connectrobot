@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   getBearerToken,
   isAuthorizedNetworkingDnaRequest,
-} from "../../server/networking-dna/env";
-import { extractSessionId } from "../../api/networking-dna/session/[id]/message";
+} from "../../server/networking-dna/env.js";
+import { extractSessionId } from "../../api/networking-dna/session/[id]/message.js";
 
 describe("Networking DNA API helpers", () => {
   it("accepts either bearer or shared-secret header auth", () => {
