@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
 import {
+  CANONICAL_REFERRAL_NEED_KEYS,
   ScenarioContextSchema,
   createEmptyScenarioContext,
   type ConversationMessage,
@@ -63,11 +64,17 @@ const SCENARIO_INTERPRETER_SYSTEM_PROMPT = [
   "Transform the conversation into the exact structured context schema.",
   "Strictly separate observed facts from inferred referral opportunities.",
   "Observed fields must contain only facts the user stated or confirmed.",
-  "Inferred needs may describe plausible referral opportunities, but never convert possibilities into claims.",
-  "For example, two teenagers may support driver education as an inferred need, but do not claim they need lessons.",
-  "For a home that needs work, infer possible home/property categories without claiming a specific system is broken.",
-  "For a growing business, infer possible bookkeeping, tax, banking, IT, or automation needs without inventing financial or cybersecurity problems.",
+  `For inferred_needs[].need, output only one of these canonical referral_need_taxonomy keys: ${CANONICAL_REFERRAL_NEED_KEYS.join(", ")}.`,
+  "Never emit prose, display labels, plural phrases, or unsupported need keys in inferred_needs[].need.",
+  "Prefer needs that can actually map to the current BXN recommendation taxonomy.",
+  "Do not generate broad speculative needs simply because they are plausible for someone in that life situation.",
+  "Infer a need only when observed facts or explicit user statements create a grounded, high-value referral opportunity.",
+  "Keep uncertainty in confidence, reason, and supported_by, but do not convert possibilities into confirmed claims.",
+  "For example, two teenagers may support driver_education as an inferred need, but do not claim they need lessons.",
+  "For a home that needs work, infer only taxonomy-backed home/property needs that the stated facts reasonably support; do not claim a specific system is broken unless the user stated it.",
+  "For a growing business, infer taxonomy-backed business or financial needs without inventing financial, tax, IT, cybersecurity, or automation problems.",
   "Use supported_by to name the specific observed facts that support each inference.",
-  "Include unknowns only when the missing answer could materially change the referral list.",
+  "Include unknowns only when the missing answer could materially change recommendations available in the current taxonomy.",
+  "Choose follow-up questions for information gain against available recommendation keys, not generic intake completeness.",
   "Keep the context current across turns by merging new user information with the previous structured context.",
 ].join("\n");

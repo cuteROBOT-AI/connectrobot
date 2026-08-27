@@ -26,7 +26,7 @@
     },
     "inferred_needs": [
       {
-        "need": "general contractor",
+        "need": "general_contractor",
         "category": "home_property",
         "importance": 0.9,
         "confidence": 0.78,
@@ -34,7 +34,7 @@
         "supported_by": ["home needs work", "recent home purchase"]
       },
       {
-        "need": "driver education",
+        "need": "driver_education",
         "category": "family_lifestyle",
         "importance": 0.56,
         "confidence": 0.52,
@@ -42,7 +42,7 @@
         "supported_by": ["two teenagers"]
       },
       {
-        "need": "business banking",
+        "need": "business_banking",
         "category": "business_growth",
         "importance": 0.75,
         "confidence": 0.64,

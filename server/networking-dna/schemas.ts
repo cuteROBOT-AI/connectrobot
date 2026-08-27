@@ -11,6 +11,23 @@ export const NeedCategorySchema = z.enum([
   "other",
 ]);
 
+export const CANONICAL_REFERRAL_NEED_KEYS = [
+  "general_contractor",
+  "home_inspection",
+  "hvac",
+  "pest_control",
+  "roofing",
+  "driver_education",
+  "bookkeeping",
+  "business_banking",
+  "managed_it",
+  "ai_automation",
+  "financial_planning",
+  "tax_strategy",
+] as const;
+
+export const CanonicalReferralNeedKeySchema = z.enum(CANONICAL_REFERRAL_NEED_KEYS);
+
 export const NetworkingDnaMessageRequestSchema = z.object({
   message: z.string().trim().min(1).max(10_000),
 });
@@ -57,7 +74,7 @@ export const ScenarioContextSchema = z.object({
   }),
   inferred_needs: z.array(
     z.object({
-      need: z.string(),
+      need: CanonicalReferralNeedKeySchema,
       category: NeedCategorySchema,
       importance: z.number().min(0).max(1),
       confidence: z.number().min(0).max(1),
@@ -147,6 +164,7 @@ export const NetworkingSessionRowSchema = z.object({
 });
 
 export type NetworkingDnaMessageRequest = z.infer<typeof NetworkingDnaMessageRequestSchema>;
+export type CanonicalReferralNeedKey = z.infer<typeof CanonicalReferralNeedKeySchema>;
 export type ScenarioContext = z.infer<typeof ScenarioContextSchema>;
 export type CandidateScorerResult = z.infer<typeof CandidateScorerResultSchema>;
 export type RecommendationBoard = z.infer<typeof RecommendationBoardSchema>;
