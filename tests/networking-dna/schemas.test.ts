@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_REFERRAL_NEED_KEYS,
+  CandidateScorerResultsSchema,
   ScenarioContextSchema,
 } from "../../server/networking-dna/schemas.js";
 import fixture from "./fixtures/austin-family-business.json";
@@ -41,6 +42,27 @@ describe("Networking DNA scenario schema", () => {
         "financial_planning",
         "tax_strategy",
       ]),
+    );
+  });
+
+  it("normalizes object-shaped scorer explanation fields to strings", () => {
+    const scorerResult = {
+      ...fixture.scorer_results[0],
+      match_basis: {
+        need: "Home needs work",
+        context: ["Recent purchase", "Austin"],
+      },
+      why_matched: {
+        summary: "Strong home-property match",
+        evidence: ["General contractor taxonomy key"],
+      },
+    };
+
+    const [candidate] = CandidateScorerResultsSchema.parse([scorerResult]);
+
+    expect(candidate.match_basis).toBe("Home needs work; Recent purchase; Austin");
+    expect(candidate.why_matched).toBe(
+      "Strong home-property match; General contractor taxonomy key",
     );
   });
 });

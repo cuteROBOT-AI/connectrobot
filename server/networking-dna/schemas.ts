@@ -28,6 +28,26 @@ export const CANONICAL_REFERRAL_NEED_KEYS = [
 
 export const CanonicalReferralNeedKeySchema = z.enum(CANONICAL_REFERRAL_NEED_KEYS);
 
+function stringifyScorerText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.trim() || null;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+
+  if (Array.isArray(value)) {
+    const text = value.map(stringifyScorerText).filter(Boolean).join("; ");
+    return text || null;
+  }
+
+  if (typeof value === "object") {
+    const text = Object.values(value).map(stringifyScorerText).filter(Boolean).join("; ");
+    return text || JSON.stringify(value);
+  }
+
+  return null;
+}
+
+const ScorerTextSchema = z.preprocess(stringifyScorerText, z.string().nullable());
+
 export const NetworkingDnaMessageRequestSchema = z.object({
   message: z.string().trim().min(1).max(10_000),
 });
@@ -95,13 +115,13 @@ export const CandidateScorerResultSchema = z.object({
   business_name: z.string().nullable(),
   primary_category: z.string().nullable(),
   match_type: MatchTypeSchema,
-  match_basis: z.string().nullable(),
+  match_basis: ScorerTextSchema,
   total_score: z.number(),
   need_fit_score: z.number().optional(),
   context_fit_score: z.number().optional(),
   service_area_score: z.number().optional(),
   referral_network_score: z.number().optional(),
-  why_matched: z.string().nullable(),
+  why_matched: ScorerTextSchema,
 });
 
 export const CandidateScorerResultsSchema = z.array(CandidateScorerResultSchema);
