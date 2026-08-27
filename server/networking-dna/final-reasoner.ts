@@ -94,7 +94,10 @@ export function enforceCandidateGrounding(
             need_label: recommendation.need_label || humanizeNeedKey(candidate.need_key),
             match_type: candidate.match_type,
             display_tier: displayTier,
-            reason: recommendation.reason || candidate.why_matched || "Matched by the BXN scorer.",
+            reason: sanitizeUserFacingText(
+              recommendation.reason || candidate.why_matched,
+              "Grounded BXN referral candidate.",
+            ),
             evidence: sanitizeEvidence(recommendation.evidence),
             score: candidate.total_score,
             __scorerIndex: index,
@@ -138,8 +141,14 @@ function sanitizeEvidence(evidence: string[]): string[] {
   return [...new Set(sanitized)];
 }
 
+function sanitizeUserFacingText(value: string | null | undefined, fallback: string): string {
+  if (!value) return fallback;
+  const sanitized = sanitizeEvidence([value]).join(". ");
+  return sanitized || fallback;
+}
+
 function containsInternalScorerTerminology(value: string): boolean {
-  return /\b(?:scorer|total\s*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|match[_\s-]*type|display[_\s-]*tier)\b/i.test(
+  return /\b(?:scorer|score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|match[_\s-]*type|match[_\s-]*basis|display[_\s-]*tier|(?:exact|direct|adjacent)\s+match)\b/i.test(
     value,
   );
 }
@@ -148,11 +157,24 @@ function isMaterialRecommendationQuestion(
   question: RecommendationBoard["open_questions"][number],
 ): boolean {
   const text = `${question.question} ${question.why_it_matters}`.toLowerCase();
+  if (/\b(?:general consultation|consultation|intake|discovery call|talk to someone|learn more)\b/.test(text)) {
+    return false;
+  }
+
   if (/\b(?:taxonomy|candidate|candidates|recommendation|recommendations|rank|ranking|referral|referrals|need|needs|service|services|area|location|industry|home|property|business|teen|driver|financial|tax|bookkeeping|banking|it|automation|roof|hvac|pest|inspection|contractor)\b/.test(text)) {
     return true;
   }
 
   return false;
+}
+
+function buildCandidateProfileEvidence(candidate: CandidateScorerResult): string[] {
+  const evidence = [
+    candidate.primary_category ? `Profile category: ${candidate.primary_category}` : null,
+    candidate.business_name ? `Business profile: ${candidate.business_name}` : null,
+  ];
+
+  return evidence.filter((item): item is string => Boolean(item));
 }
 
 export function buildDeterministicBoard(
@@ -189,8 +211,11 @@ export function buildDeterministicBoard(
       need_label: humanizeNeedKey(candidate.need_key),
       match_type: candidate.match_type,
       display_tier: displayTier,
-      reason: candidate.why_matched || candidate.match_basis || "Matched by the BXN scorer.",
-      evidence: candidate.match_basis ? [candidate.match_basis] : [],
+      reason: sanitizeUserFacingText(
+        candidate.why_matched || candidate.match_basis,
+        "Grounded BXN referral candidate.",
+      ),
+      evidence: buildCandidateProfileEvidence(candidate),
       service_area_note: null,
       network_note: null,
       score: candidate.total_score,
@@ -268,7 +293,8 @@ const FINAL_REASONER_SYSTEM_PROMPT = [
   "Only transform grounded scorer candidates into the referral board schema.",
   "Keep the numeric score field for internal sorting, but never restate scores in user-facing prose or evidence.",
   "Do not expose raw scorer terminology, scoring formulas, or score components in user-facing prose or evidence.",
-  "Evidence must be natural grounded facts only: services, specialties, profile facts, service-area facts, or stated scenario facts.",
+  "Evidence must be natural grounded facts from member/profile data only: services, specialties, relevant experience, geography, profile facts, or service-area facts.",
+  "Do not use the user's scenario itself as evidence; use reason to briefly connect member/profile facts to the scenario.",
   "Do not include phrases such as Scorer: exact, Total score, need_fit_score, context_fit_score, service_area_score, referral_network_score, match_type, or inference_confidence in evidence.",
   "Use exact and direct matches as recommended unless there is an explicit grounding reason not to.",
   "Use adjacent matches as also_consider unless there is an explicit grounding reason not to.",

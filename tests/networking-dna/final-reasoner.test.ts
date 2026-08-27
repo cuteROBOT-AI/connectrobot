@@ -131,11 +131,12 @@ describe("Final Reasoner grounding", () => {
               need_label: "General Contractor",
               match_type: "exact",
               display_tier: "recommended",
-              reason: "Draft",
+              reason: "Scorer: exact; Total score: 96",
               evidence: [
                 "Services include home renovation and remodeling.",
                 "Scorer: exact; Total score: 96; need_fit_score: 99",
                 "Serves Austin-area homeowners; context_fit_score: 94",
+                "Exact match for general_contractor.",
               ],
               service_area_note: null,
               network_note: null,
@@ -157,12 +158,13 @@ describe("Final Reasoner grounding", () => {
     const recommendation = grounded.category_groups[0]?.recommendations[0];
 
     expect(recommendation?.score).toBe(candidate.total_score);
+    expect(recommendation?.reason).toBe("Grounded BXN referral candidate.");
     expect(recommendation?.evidence).toEqual([
       "Services include home renovation and remodeling",
       "Serves Austin-area homeowners",
     ]);
     expect(JSON.stringify(recommendation?.evidence)).not.toMatch(
-      /Scorer|Total score|need_fit_score|context_fit_score|service_area_score/i,
+      /Scorer|score|need_fit_score|context_fit_score|service_area_score|exact match/i,
     );
     expect(grounded.open_questions).toEqual([]);
   });
@@ -190,7 +192,12 @@ describe("Final Reasoner grounding", () => {
     };
     expect(request?.input[0]).toEqual(
       expect.objectContaining({
-        content: expect.stringContaining("Evidence must be natural grounded facts only"),
+        content: expect.stringContaining("Evidence must be natural grounded facts from member/profile data only"),
+      }),
+    );
+    expect(request?.input[0]).toEqual(
+      expect.objectContaining({
+        content: expect.stringContaining("Do not use the user's scenario itself as evidence"),
       }),
     );
     expect(request?.input[0]).toEqual(
