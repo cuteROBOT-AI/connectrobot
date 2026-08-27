@@ -42,7 +42,7 @@ export class SupabaseSessionRepository implements SessionRepository {
       .insert({
         current_summary: initialSummary,
         current_structured_context: context,
-        current_recommendations: null,
+        current_recommendations: [],
       })
       .select("id")
       .single();
@@ -92,7 +92,7 @@ export class SupabaseSessionRepository implements SessionRepository {
   async upsertCurrentScenario(sessionId: string, context: ScenarioContext): Promise<void> {
     const payload = {
       session_id: sessionId,
-      scenario_summary: context.scenario_summary,
+      scenario_text: context.scenario_summary,
       structured_context: context,
     };
 
