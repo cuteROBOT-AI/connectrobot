@@ -15,6 +15,8 @@
 
   The Networking DNA / ConnectROBOT POC uses the cuterobot.ai Supabase project, not the LeadROBOT Supabase project.
 
+  Preview deployments should use the configured ConnectROBOT Vercel project environment variables.
+
   ### Auth
 
   Both endpoints require a shared server-side API key. Send either:
