@@ -4,7 +4,7 @@ import {
   getBearerToken,
   isAuthorizedNetworkingDnaRequest,
 } from "../../server/networking-dna/env.js";
-import { extractSessionId } from "../../api/networking-dna/session/[id]/message.js";
+import { extractSessionId } from "../../api/networking-dna/session-message.js";
 
 describe("Networking DNA API helpers", () => {
   it("accepts either bearer or shared-secret header auth", () => {
@@ -38,6 +38,9 @@ describe("Networking DNA API helpers", () => {
         "https://example.com/api/networking-dna/session/session%20with%20space/message",
       ),
     ).toBe("session with space");
+    expect(
+      extractSessionId("https://example.com/api/networking-dna/session-message?id=session-123"),
+    ).toBe("session-123");
     expect(extractSessionId("https://example.com/api/networking-dna/session")).toBeNull();
   });
 });

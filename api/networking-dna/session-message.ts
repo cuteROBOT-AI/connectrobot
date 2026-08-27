@@ -1,12 +1,12 @@
-import { processNetworkingDnaMessage } from "../../../../server/networking-dna/pipeline.js";
-import { NetworkingDnaMessageRequestSchema } from "../../../../server/networking-dna/schemas.js";
+import { processNetworkingDnaMessage } from "../../server/networking-dna/pipeline.js";
+import { NetworkingDnaMessageRequestSchema } from "../../server/networking-dna/schemas.js";
 import {
   createAuthorizedPipeline,
   errorResponse,
   jsonResponse,
   methodNotAllowed,
   parseJsonBody,
-} from "../../http.js";
+} from "./http.js";
 
 export default {
   async fetch(request: Request) {
@@ -38,7 +38,11 @@ export default {
 };
 
 export function extractSessionId(url: string): string | null {
-  const pathname = new URL(url).pathname;
-  const match = pathname.match(/^\/api\/networking-dna\/session\/([^/]+)\/message\/?$/);
-  return match?.[1] ? decodeURIComponent(match[1]) : null;
+  const parsedUrl = new URL(url);
+  const match = parsedUrl.pathname.match(
+    /^\/api\/networking-dna\/session\/([^/]+)\/message\/?$/,
+  );
+  if (match?.[1]) return decodeURIComponent(match[1]);
+
+  return parsedUrl.searchParams.get("id");
 }
