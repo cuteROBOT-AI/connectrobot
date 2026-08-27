@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import type OpenAI from "openai";
+import { describe, expect, it, vi } from "vitest";
 
 import {
+  OpenAIFinalReasoner,
   buildDeterministicBoard,
   enforceCandidateGrounding,
 } from "../../server/networking-dna/final-reasoner.js";
@@ -91,5 +93,25 @@ describe("Final Reasoner grounding", () => {
     expect(recommendation?.display_tier).toBe("recommended");
     expect(recommendation?.score).toBe(96);
     expect(grounded.open_questions).toHaveLength(3);
+  });
+
+  it("requests low-latency Responses API behavior while preserving structured output", async () => {
+    const board = buildDeterministicBoard(context, candidates);
+    const parse = vi.fn(async () => ({ output_parsed: board }));
+    const client = { responses: { parse } } as unknown as OpenAI;
+    const finalReasoner = new OpenAIFinalReasoner(client, "current-final-model");
+
+    await finalReasoner.buildBoard({ context, candidates });
+
+    expect(parse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "current-final-model",
+        reasoning: { effort: "minimal" },
+        text: expect.objectContaining({
+          verbosity: "low",
+          format: expect.any(Object),
+        }),
+      }),
+    );
   });
 });

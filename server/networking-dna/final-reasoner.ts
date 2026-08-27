@@ -30,6 +30,7 @@ export class OpenAIFinalReasoner implements FinalReasoner {
 
     const response = await this.client.responses.parse({
       model: this.model,
+      reasoning: { effort: "minimal" },
       input: [
         {
           role: "system",
@@ -44,6 +45,7 @@ export class OpenAIFinalReasoner implements FinalReasoner {
         },
       ],
       text: {
+        verbosity: "low",
         format: zodTextFormat(RecommendationBoardSchema, "networking_dna_referral_board"),
       },
     });

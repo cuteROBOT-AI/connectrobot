@@ -27,6 +27,7 @@ export class OpenAIScenarioInterpreter implements ScenarioInterpreter {
   async interpret(input: ScenarioInterpreterInput): Promise<ScenarioContext> {
     const response = await this.client.responses.parse({
       model: this.model,
+      reasoning: { effort: "minimal" },
       input: [
         {
           role: "system",
@@ -44,6 +45,7 @@ export class OpenAIScenarioInterpreter implements ScenarioInterpreter {
         },
       ],
       text: {
+        verbosity: "low",
         format: zodTextFormat(
           ScenarioContextSchema,
           "networking_dna_scenario_context",
