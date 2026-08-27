@@ -95,6 +95,7 @@ export function enforceCandidateGrounding(
             match_type: candidate.match_type,
             display_tier: displayTier,
             reason: recommendation.reason || candidate.why_matched || "Matched by the BXN scorer.",
+            evidence: sanitizeEvidence(recommendation.evidence),
             score: candidate.total_score,
             __scorerIndex: index,
           };
@@ -117,10 +118,41 @@ export function enforceCandidateGrounding(
       (total, group) => total + group.recommendations.length,
       0,
     ),
-    open_questions: board.open_questions.slice(0, 3),
+    open_questions: board.open_questions
+      .filter(isMaterialRecommendationQuestion)
+      .slice(0, 3),
   };
 
   return RecommendationBoardSchema.parse(groundedBoard);
+}
+
+function sanitizeEvidence(evidence: string[]): string[] {
+  const sanitized = evidence.flatMap((item) =>
+    item
+      .split(/(?:[.;]\s+|;\s*)/)
+      .map((segment) => segment.replace(/[.;]+$/, "").trim())
+      .filter((segment) => segment.length > 0)
+      .filter((segment) => !containsInternalScorerTerminology(segment)),
+  );
+
+  return [...new Set(sanitized)];
+}
+
+function containsInternalScorerTerminology(value: string): boolean {
+  return /\b(?:scorer|total\s*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|match[_\s-]*type|display[_\s-]*tier)\b/i.test(
+    value,
+  );
+}
+
+function isMaterialRecommendationQuestion(
+  question: RecommendationBoard["open_questions"][number],
+): boolean {
+  const text = `${question.question} ${question.why_it_matters}`.toLowerCase();
+  if (/\b(?:taxonomy|candidate|candidates|recommendation|recommendations|rank|ranking|referral|referrals|need|needs|service|services|area|location|industry|home|property|business|teen|driver|financial|tax|bookkeeping|banking|it|automation|roof|hvac|pest|inspection|contractor)\b/.test(text)) {
+    return true;
+  }
+
+  return false;
 }
 
 export function buildDeterministicBoard(
@@ -234,9 +266,13 @@ const FINAL_REASONER_SYSTEM_PROMPT = [
   "The scorer results are authoritative for candidate selection and ranking.",
   "Do not invent BXN members, businesses, services, relationships, or scores.",
   "Only transform grounded scorer candidates into the referral board schema.",
-  "Do not expose internal scoring formulas or score components in user-facing prose.",
+  "Keep the numeric score field for internal sorting, but never restate scores in user-facing prose or evidence.",
+  "Do not expose raw scorer terminology, scoring formulas, or score components in user-facing prose or evidence.",
+  "Evidence must be natural grounded facts only: services, specialties, profile facts, service-area facts, or stated scenario facts.",
+  "Do not include phrases such as Scorer: exact, Total score, need_fit_score, context_fit_score, service_area_score, referral_network_score, match_type, or inference_confidence in evidence.",
   "Use exact and direct matches as recommended unless there is an explicit grounding reason not to.",
   "Use adjacent matches as also_consider unless there is an explicit grounding reason not to.",
-  "Return up to three open questions only when the answer could materially change the referral list.",
+  "Return an open question only when its answer could materially change which current taxonomy needs or candidates appear, or how those candidates rank.",
+  "Returning fewer than three open questions is better than filling the quota with generic consultation or intake questions.",
   "Preserve uncertainty and avoid claiming inferred needs are confirmed facts.",
 ].join("\n");

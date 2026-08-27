@@ -76,10 +76,26 @@ describe("Final Reasoner grounding", () => {
         },
       ],
       open_questions: [
-        { question: "One?", why_it_matters: "Because.", priority: "high" },
-        { question: "Two?", why_it_matters: "Because.", priority: "medium" },
-        { question: "Three?", why_it_matters: "Because.", priority: "low" },
-        { question: "Four?", why_it_matters: "Because.", priority: "low" },
+        {
+          question: "What kind of home work is most urgent?",
+          why_it_matters: "It could change which home-property referral needs rank highest.",
+          priority: "high",
+        },
+        {
+          question: "What industry is the business in?",
+          why_it_matters: "It could change which business candidates rank highest.",
+          priority: "medium",
+        },
+        {
+          question: "Are the teenagers learning to drive?",
+          why_it_matters: "It could change whether driver education appears.",
+          priority: "low",
+        },
+        {
+          question: "Would they like a general consultation?",
+          why_it_matters: "Because.",
+          priority: "low",
+        },
       ],
     });
 
@@ -95,9 +111,65 @@ describe("Final Reasoner grounding", () => {
     expect(grounded.open_questions).toHaveLength(3);
   });
 
+  it("removes scorer/debug terminology from user-facing evidence", () => {
+    const candidate = candidates[0];
+    const board = RecommendationBoardSchema.parse({
+      session_summary: context.scenario_summary,
+      headline: "Draft",
+      total_recommendations: 1,
+      category_groups: [
+        {
+          category_key: "home_property",
+          category_label: "Home & Property",
+          category_summary: "Draft",
+          recommendations: [
+            {
+              member_id: candidate.member_id,
+              full_name: candidate.full_name,
+              business_name: candidate.business_name,
+              need_key: candidate.need_key,
+              need_label: "General Contractor",
+              match_type: "exact",
+              display_tier: "recommended",
+              reason: "Draft",
+              evidence: [
+                "Services include home renovation and remodeling.",
+                "Scorer: exact; Total score: 96; need_fit_score: 99",
+                "Serves Austin-area homeowners; context_fit_score: 94",
+              ],
+              service_area_note: null,
+              network_note: null,
+              score: 1,
+            },
+          ],
+        },
+      ],
+      open_questions: [
+        {
+          question: "Would they like a consultation?",
+          why_it_matters: "Generic intake completeness.",
+          priority: "low",
+        },
+      ],
+    });
+
+    const grounded = enforceCandidateGrounding(board, context, candidates);
+    const recommendation = grounded.category_groups[0]?.recommendations[0];
+
+    expect(recommendation?.score).toBe(candidate.total_score);
+    expect(recommendation?.evidence).toEqual([
+      "Services include home renovation and remodeling",
+      "Serves Austin-area homeowners",
+    ]);
+    expect(JSON.stringify(recommendation?.evidence)).not.toMatch(
+      /Scorer|Total score|need_fit_score|context_fit_score|service_area_score/i,
+    );
+    expect(grounded.open_questions).toEqual([]);
+  });
+
   it("requests low-latency Responses API behavior while preserving structured output", async () => {
     const board = buildDeterministicBoard(context, candidates);
-    const parse = vi.fn(async () => ({ output_parsed: board }));
+    const parse = vi.fn(async (_request: unknown) => ({ output_parsed: board }));
     const client = { responses: { parse } } as unknown as OpenAI;
     const finalReasoner = new OpenAIFinalReasoner(client, "current-final-model");
 
@@ -111,6 +183,19 @@ describe("Final Reasoner grounding", () => {
           verbosity: "low",
           format: expect.any(Object),
         }),
+      }),
+    );
+    const request = parse.mock.calls[0]?.[0] as {
+      input: Array<{ content: string }>;
+    };
+    expect(request?.input[0]).toEqual(
+      expect.objectContaining({
+        content: expect.stringContaining("Evidence must be natural grounded facts only"),
+      }),
+    );
+    expect(request?.input[0]).toEqual(
+      expect.objectContaining({
+        content: expect.stringContaining("Returning fewer than three open questions is better"),
       }),
     );
   });
