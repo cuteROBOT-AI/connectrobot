@@ -1,0 +1,100 @@
+import {
+  NetworkingDnaResponseSchema,
+  ScenarioContextSchema,
+  type ConversationMessage,
+  type NetworkingDnaResponse,
+  type ScenarioContext,
+} from "./schemas";
+import type { FinalReasoner } from "./final-reasoner";
+import type { ScenarioInterpreter } from "./scenario-interpreter";
+import type { SessionRepository } from "./session-repository";
+
+export interface NetworkingDnaPipeline {
+  repository: SessionRepository;
+  scenarioInterpreter: ScenarioInterpreter;
+  finalReasoner: FinalReasoner;
+  recentMessageLimit: number;
+}
+
+export async function createNetworkingDnaSession(
+  repository: SessionRepository,
+  initialSummary?: string,
+): Promise<{ session_id: string }> {
+  return { session_id: await repository.createSession(initialSummary) };
+}
+
+export async function processNetworkingDnaMessage(
+  sessionId: string,
+  message: string,
+  pipeline: NetworkingDnaPipeline,
+): Promise<NetworkingDnaResponse> {
+  const session = await pipeline.repository.getSession(sessionId);
+  const recentMessages = await pipeline.repository.listRecentMessages(
+    sessionId,
+    pipeline.recentMessageLimit,
+  );
+
+  await pipeline.repository.saveMessage(session.id, "user", message);
+
+  const conversation: ConversationMessage[] = [
+    ...recentMessages,
+    { role: "user", content: message },
+  ];
+
+  const structuredContext = await pipeline.scenarioInterpreter.interpret({
+    previousContext: parsePreviousContext(session.current_structured_context),
+    messages: conversation,
+  });
+
+  await pipeline.repository.upsertCurrentScenario(session.id, structuredContext);
+
+  const candidates = await pipeline.repository.previewCandidates(structuredContext, 3);
+  const recommendationBoard = await pipeline.finalReasoner.buildBoard({
+    context: structuredContext,
+    candidates,
+  });
+  const assistantMessage = buildAssistantMessage(recommendationBoard);
+
+  await pipeline.repository.updateSessionState(
+    session.id,
+    structuredContext,
+    recommendationBoard,
+  );
+  await pipeline.repository.saveMessage(session.id, "assistant", assistantMessage);
+
+  return NetworkingDnaResponseSchema.parse({
+    session_id: session.id,
+    assistant_message: assistantMessage,
+    structured_context: structuredContext,
+    recommendation_board: recommendationBoard,
+    open_questions: recommendationBoard.open_questions,
+  });
+}
+
+function parsePreviousContext(value: unknown): ScenarioContext | null {
+  const parsed = ScenarioContextSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
+export function buildAssistantMessage(
+  board: Pick<
+    NetworkingDnaResponse["recommendation_board"],
+    "headline" | "total_recommendations" | "open_questions"
+  >,
+): string {
+  const countText =
+    board.total_recommendations === 1
+      ? "I found 1 grounded BXN referral candidate."
+      : `I found ${board.total_recommendations} grounded BXN referral candidates.`;
+
+  if (board.open_questions.length === 0) {
+    return `${board.headline} ${countText}`;
+  }
+
+  const questions = board.open_questions
+    .slice(0, 3)
+    .map((openQuestion) => openQuestion.question)
+    .join(" ");
+
+  return `${board.headline} ${countText} A few details could sharpen the board: ${questions}`;
+}
