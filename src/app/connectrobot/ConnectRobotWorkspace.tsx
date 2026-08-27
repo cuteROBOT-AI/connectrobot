@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { createConnectRobotSession, sendConnectRobotMessage } from "./api";
 import { ConversationPane } from "./ConversationPane";
+import { getChangedPresentedMemberIds } from "./presentation";
 import { RecommendationBoard } from "./RecommendationBoard";
 import type { ConversationMessage, OpenQuestion, RecommendationBoardData } from "./types";
 
@@ -10,10 +11,22 @@ export function ConnectRobotWorkspace() {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [board, setBoard] = useState<RecommendationBoardData | null>(null);
   const [openQuestions, setOpenQuestions] = useState<OpenQuestion[]>([]);
+  const [highlightedMemberIds, setHighlightedMemberIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const highlightTimeoutRef = useRef<number | null>(null);
 
   const topSuggestion = useMemo(() => openQuestions[0] ?? null, [openQuestions]);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        window.clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSend(content: string) {
     const userMessage: ConversationMessage = {
@@ -31,8 +44,20 @@ export function ConnectRobotWorkspace() {
       if (!sessionId) setSessionId(activeSessionId);
 
       const response = await sendConnectRobotMessage(activeSessionId, content);
+      const changedMemberIds = getChangedPresentedMemberIds(
+        board,
+        response.recommendation_board,
+      );
       setBoard(response.recommendation_board);
       setOpenQuestions(response.open_questions);
+      if (highlightTimeoutRef.current) {
+        window.clearTimeout(highlightTimeoutRef.current);
+      }
+      setHighlightedMemberIds(new Set(changedMemberIds));
+      highlightTimeoutRef.current = window.setTimeout(() => {
+        setHighlightedMemberIds(new Set());
+        highlightTimeoutRef.current = null;
+      }, 2600);
       setMessages((current) => [
         ...current,
         {
@@ -45,14 +70,15 @@ export function ConnectRobotWorkspace() {
       const message =
         caught instanceof Error
           ? caught.message
-          : "ConnectROBOT could not update recommendations.";
+          : "I’m having trouble reaching the recommendation service.";
       setError(message);
       setMessages((current) => [
         ...current,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "I could not update the recommendation board. Please try again.",
+          content:
+            "I’m having trouble reaching the recommendation service. Please try again in a moment.",
         },
       ]);
     } finally {
@@ -61,8 +87,8 @@ export function ConnectRobotWorkspace() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f2ec] text-[#171b18]">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)]">
+    <main className="h-dvh overflow-hidden bg-[#f4f2ec] text-[#171b18]">
+      <div className="grid h-full min-h-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] lg:overflow-hidden">
         <ConversationPane
           messages={messages}
           suggestion={topSuggestion}
@@ -70,7 +96,11 @@ export function ConnectRobotWorkspace() {
           error={error}
           onSend={handleSend}
         />
-        <RecommendationBoard board={board} isUpdating={isSending && Boolean(board)} />
+        <RecommendationBoard
+          board={board}
+          isUpdating={isSending && Boolean(board)}
+          highlightedMemberIds={highlightedMemberIds}
+        />
       </div>
     </main>
   );

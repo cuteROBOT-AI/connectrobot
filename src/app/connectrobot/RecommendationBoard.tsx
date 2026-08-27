@@ -1,4 +1,13 @@
-import { CheckCircle2, ChevronDown, Clipboard, FileDown, Mail, MessageSquareText } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Clipboard,
+  ExternalLink,
+  FileDown,
+  Mail,
+  MessageSquareText,
+  Phone,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "../components/ui/badge";
@@ -9,17 +18,28 @@ import {
   sanitizeRecommendationEvidence,
   sanitizeRecommendationText,
 } from "./format-board";
-import type { Recommendation, RecommendationBoardData } from "./types";
+import {
+  buildPresentedCategoryGroups,
+  getProfileHref,
+  type PresentedRecommendation,
+} from "./presentation";
+import type { RecommendationBoardData } from "./types";
 
 interface RecommendationBoardProps {
   board: RecommendationBoardData | null;
   isUpdating: boolean;
+  highlightedMemberIds: Set<string>;
 }
 
-export function RecommendationBoard({ board, isUpdating }: RecommendationBoardProps) {
+export function RecommendationBoard({
+  board,
+  isUpdating,
+  highlightedMemberIds,
+}: RecommendationBoardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const boardText = useMemo(() => formatRecommendationBoardAsText(board), [board]);
-  const hasRecommendations = Boolean(board && board.total_recommendations > 0);
+  const groups = useMemo(() => buildPresentedCategoryGroups(board), [board]);
+  const hasRecommendations = groups.length > 0;
 
   async function copyBoard() {
     try {
@@ -33,22 +53,24 @@ export function RecommendationBoard({ board, isUpdating }: RecommendationBoardPr
   }
 
   return (
-    <aside className="flex min-h-[620px] flex-col border-l border-[#d8ddd6] bg-[#fbfaf7] lg:min-h-0">
-      <div className="flex items-center justify-between gap-3 border-b border-[#d8ddd6] px-5 py-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#67706a]">
-            BXN Recommendation Board
-          </p>
-          <h2 className="text-lg font-semibold text-[#19201c]">
-            {board?.headline ?? "Your recommendations will build here."}
-          </h2>
-        </div>
-        {isUpdating ? (
-          <div className="flex shrink-0 items-center gap-2 rounded-md border border-[#d4e2de] bg-[#edf7f4] px-3 py-1.5 text-xs font-medium text-[#276255]">
-            <span className="size-2 animate-pulse rounded-full bg-[#2f8b78]" />
-            Updating recommendations...
+    <aside className="flex min-h-[560px] flex-col border-l border-[#d8ddd6] bg-[#fbfaf7] max-lg:min-h-[70dvh] lg:h-full lg:min-h-0">
+      <div className="shrink-0 border-b border-[#d8ddd6] px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#67706a]">
+              BXN Recommendation Board
+            </p>
+            <h2 className="truncate text-lg font-semibold text-[#19201c]">
+              {board?.headline ?? "Your recommendations will build here."}
+            </h2>
           </div>
-        ) : null}
+          {isUpdating ? (
+            <div className="flex shrink-0 items-center gap-2 rounded-md border border-[#d4e2de] bg-[#edf7f4] px-3 py-1.5 text-xs font-medium text-[#276255]">
+              <span className="size-2 animate-pulse rounded-full bg-[#2f8b78]" />
+              Refining recommendations...
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
@@ -63,7 +85,7 @@ export function RecommendationBoard({ board, isUpdating }: RecommendationBoardPr
           </div>
         ) : (
           <div className="space-y-5">
-            {board?.category_groups.map((group) => (
+            {groups.map((group) => (
               <section key={group.category_key} className="space-y-2">
                 <div className="flex items-end justify-between gap-3">
                   <div>
@@ -81,8 +103,9 @@ export function RecommendationBoard({ board, isUpdating }: RecommendationBoardPr
                 <div className="space-y-2">
                   {group.recommendations.map((recommendation) => (
                     <RecommendationCard
-                      key={`${recommendation.member_id}:${recommendation.need_key}`}
+                      key={recommendation.member_id}
                       recommendation={recommendation}
+                      isHighlighted={highlightedMemberIds.has(recommendation.member_id)}
                     />
                   ))}
                 </div>
@@ -92,7 +115,7 @@ export function RecommendationBoard({ board, isUpdating }: RecommendationBoardPr
         )}
       </div>
 
-      <div className="border-t border-[#d8ddd6] bg-white px-5 py-3">
+      <div className="shrink-0 border-t border-[#d8ddd6] bg-white px-5 py-3">
         <div className="grid grid-cols-4 gap-2">
           <Button variant="outline" size="sm" disabled title="Export coming soon">
             <FileDown className="size-4" />
@@ -130,31 +153,54 @@ export function RecommendationBoard({ board, isUpdating }: RecommendationBoardPr
   );
 }
 
-function RecommendationCard({ recommendation }: { recommendation: Recommendation }) {
+function RecommendationCard({
+  recommendation,
+  isHighlighted,
+}: {
+  recommendation: PresentedRecommendation;
+  isHighlighted: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
   const reason = sanitizeRecommendationText(recommendation.reason);
   const evidence = sanitizeRecommendationEvidence(recommendation.evidence);
-  const serviceAreaNote = sanitizeRecommendationText(recommendation.service_area_note);
-  const networkNote = sanitizeRecommendationText(recommendation.network_note);
+  const serviceAreaNotes = sanitizeRecommendationEvidence(recommendation.service_area_notes);
+  const networkNotes = sanitizeRecommendationEvidence(recommendation.network_notes);
+  const profileHref = getProfileHref(recommendation);
   const hasDetails =
     evidence.length > 0 ||
-    Boolean(serviceAreaNote) ||
-    Boolean(networkNote);
+    serviceAreaNotes.length > 0 ||
+    networkNotes.length > 0;
   const isPrimary = recommendation.display_tier === "recommended";
+  const hasContact = Boolean(recommendation.phone || recommendation.email);
 
   return (
     <article
       className={cn(
-        "rounded-md border bg-white px-4 py-3 shadow-sm",
-        isPrimary ? "border-[#b7d1c8]" : "border-[#dde1dc] opacity-85",
+        "rounded-md border bg-white px-4 py-3 shadow-sm transition-[background-color,border-color,box-shadow,opacity] duration-500",
+        isPrimary
+          ? "border-[#a9c9bf] shadow-[0_1px_8px_rgba(31,111,97,0.08)]"
+          : "border-[#dde1dc] bg-[#fdfdfb] opacity-80",
+        isHighlighted ? "border-[#d6bd6a] bg-[#fffdf2] shadow-md" : "",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="truncate text-sm font-semibold text-[#17201b]">
-              {recommendation.full_name}
-            </h4>
+            {profileHref ? (
+              <a
+                href={profileHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-w-0 items-center gap-1 text-sm font-semibold text-[#17201b] underline-offset-3 hover:text-[#1f6f61] hover:underline"
+              >
+                <span className="truncate">{recommendation.full_name}</span>
+                <ExternalLink className="size-3 shrink-0" />
+              </a>
+            ) : (
+              <h4 className="truncate text-sm font-semibold text-[#17201b]">
+                {recommendation.full_name}
+              </h4>
+            )}
             <Badge
               variant={isPrimary ? "default" : "secondary"}
               className={cn(
@@ -172,14 +218,44 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
               {recommendation.business_name}
             </p>
           ) : null}
-          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#84744f]">
-            {recommendation.need_label}
-          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {recommendation.need_labels.map((needLabel) => (
+              <span
+                key={needLabel}
+                className="rounded-md border border-[#e1d7bc] bg-[#fbf7eb] px-2 py-0.5 text-[11px] font-semibold text-[#7a6841]"
+              >
+                {needLabel}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       {reason ? (
         <p className="mt-2 text-sm leading-5 text-[#354038]">{reason}</p>
+      ) : null}
+
+      {hasContact ? (
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#68716b]">
+          {recommendation.phone ? (
+            <a
+              href={`tel:${recommendation.phone}`}
+              className="inline-flex items-center gap-1 hover:text-[#1f6f61]"
+            >
+              <Phone className="size-3" />
+              {recommendation.phone}
+            </a>
+          ) : null}
+          {recommendation.email ? (
+            <a
+              href={`mailto:${recommendation.email}`}
+              className="inline-flex items-center gap-1 hover:text-[#1f6f61]"
+            >
+              <Mail className="size-3" />
+              {recommendation.email}
+            </a>
+          ) : null}
+        </div>
       ) : null}
 
       {hasDetails ? (
@@ -203,10 +279,10 @@ function RecommendationCard({ recommendation }: { recommendation: Recommendation
                   ))}
                 </ul>
               ) : null}
-              {serviceAreaNote ? (
-                <p>{serviceAreaNote}</p>
+              {serviceAreaNotes.length > 0 ? (
+                <p>{serviceAreaNotes.join("; ")}</p>
               ) : null}
-              {networkNote ? <p>{networkNote}</p> : null}
+              {networkNotes.length > 0 ? <p>{networkNotes.join("; ")}</p> : null}
             </div>
           ) : null}
         </div>

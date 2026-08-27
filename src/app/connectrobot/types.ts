@@ -14,6 +14,10 @@ export interface Recommendation {
   member_id: string;
   full_name: string;
   business_name: string | null;
+  phone?: string | null;
+  email?: string | null;
+  profile_url?: string | null;
+  profile_path?: string | null;
   need_key: string;
   need_label: string;
   display_tier: "recommended" | "also_consider";

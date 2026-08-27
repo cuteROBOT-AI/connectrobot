@@ -37,8 +37,8 @@ export function ConversationPane({
   }
 
   return (
-    <section className="flex min-h-[620px] flex-col bg-[#f4f2ec] lg:min-h-0">
-      <div className="border-b border-[#ddd8ce] px-5 py-4">
+    <section className="flex min-h-[560px] flex-col bg-[#f4f2ec] max-lg:min-h-[70dvh] lg:h-full lg:min-h-0">
+      <div className="shrink-0 border-b border-[#ddd8ce] px-5 py-4">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#787065]">
           BXN ConnectROBOT
         </p>
@@ -50,7 +50,7 @@ export function ConversationPane({
           {messages.length === 0 ? (
             <div className="mt-8 border-l-2 border-[#2f8b78] bg-white px-5 py-4 shadow-sm">
               <p className="text-sm leading-6 text-[#3e4740]">
-                Describe a person, family, business, or situation in plain language. ConnectROBOT will listen for grounded BXN referral opportunities and build the board as the conversation develops.
+                Start with what is happening. I’ll build the referral board as we go.
               </p>
             </div>
           ) : null}
@@ -71,7 +71,7 @@ export function ConversationPane({
           {isSending ? (
             <div className="mr-auto inline-flex items-center gap-2 rounded-md border border-[#ded9cf] bg-white px-3 py-2 text-xs font-medium text-[#657068] shadow-sm">
               <Loader2 className="size-3 animate-spin" />
-              Thinking through the BXN network...
+              Looking across the BXN network...
             </div>
           ) : null}
 
@@ -79,7 +79,7 @@ export function ConversationPane({
         </div>
       </div>
 
-      <div className="sticky bottom-0 border-t border-[#ddd8ce] bg-[#f4f2ec]/95 px-5 py-4 backdrop-blur">
+      <div className="shrink-0 border-t border-[#ddd8ce] bg-[#f4f2ec]/95 px-5 py-4 backdrop-blur">
         <div className="mx-auto max-w-3xl">
           {suggestion ? (
             <div className="mb-3 rounded-md border border-[#d4e2de] bg-[#edf7f4] px-4 py-3">

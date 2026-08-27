@@ -7,7 +7,7 @@ async function parseApiResponse<T>(response: Response): Promise<T> {
     const message =
       body && typeof body === "object" && "error" in body
         ? String(body.error)
-        : "ConnectROBOT could not reach the recommendation service.";
+        : "I’m having trouble reaching the recommendation service.";
     throw new Error(message);
   }
 

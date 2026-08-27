@@ -19,6 +19,8 @@ describe("ConnectROBOT recommendation board copy formatting", () => {
               member_id: "member-1",
               full_name: "Nancy Dominguez",
               business_name: "Seven-S Contractor Services",
+              phone: "512-555-0142",
+              email: "nancy@example.com",
               need_key: "general_contractor",
               need_label: "General Contractor",
               display_tier: "recommended",
@@ -32,6 +34,19 @@ describe("ConnectROBOT recommendation board copy formatting", () => {
               network_note: null,
               score: 96,
             },
+            {
+              member_id: "member-1",
+              full_name: "Nancy Dominguez",
+              business_name: "Seven-S Contractor Services",
+              need_key: "roofing",
+              need_label: "Roofing",
+              display_tier: "recommended",
+              reason: "Roofing can be part of the same home project.",
+              evidence: ["Exterior remodeling support"],
+              service_area_note: null,
+              network_note: null,
+              score: 92,
+            },
           ],
         },
       ],
@@ -42,9 +57,12 @@ describe("ConnectROBOT recommendation board copy formatting", () => {
 
     expect(text).toContain("Recommended: Nancy Dominguez");
     expect(text).toContain("Business: Seven-S Contractor Services");
-    expect(text).toContain("Need: General Contractor");
+    expect(text).toContain("Capabilities: General Contractor, Roofing");
+    expect(text).toContain("- Phone: 512-555-0142");
+    expect(text).toContain("- Email: nancy@example.com");
     expect(text).toContain("- General contractor services");
     expect(text).toContain("- Austin-area profile");
+    expect(text.match(/Recommended: Nancy Dominguez/g)).toHaveLength(1);
     expect(text).not.toContain("96");
     expect(text).not.toMatch(/score|need_fit_score|Scorer/i);
   });
