@@ -17,6 +17,8 @@
 
   Preview deployments should use the configured ConnectROBOT Vercel project environment variables.
 
+  The `main` branch is the deployment source for the ConnectROBOT Vercel project.
+
   ### Auth
 
   Both endpoints require a shared server-side API key. Send either:
