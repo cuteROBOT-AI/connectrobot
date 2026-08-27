@@ -12,8 +12,12 @@ interface VercelConfig {
 describe("Vercel routing", () => {
   const config = JSON.parse(readFileSync("vercel.json", "utf8")) as VercelConfig;
 
-  it("routes the public message endpoint to a static Vercel Function target", () => {
+  it("routes the protected public message endpoint to a static Vercel Function target", () => {
     expect(config.rewrites?.[0]).toEqual({
+      source: "/api/connectrobot/session/:id/message",
+      destination: "/api/connectrobot/session-message?id=:id",
+    });
+    expect(config.rewrites?.[1]).toEqual({
       source: "/api/networking-dna/session/:id/message",
       destination: "/api/networking-dna/session-message?id=:id",
     });

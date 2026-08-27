@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/connectrobot/session/:id/message",
+      "destination": "/api/connectrobot/session-message?id=:id"
+    },
+    {
       "source": "/api/networking-dna/session/:id/message",
       "destination": "/api/networking-dna/session-message?id=:id"
     },
