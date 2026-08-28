@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
+import { resolveBxnProfileUrl } from "../connectrobot/member-profile.js";
 import {
   RecommendationBoardSchema,
   type CandidateScorerResult,
@@ -40,7 +41,7 @@ export class OpenAIFinalReasoner implements FinalReasoner {
           role: "user",
           content: JSON.stringify({
             structured_context: input.context,
-            authoritative_scorer_results: input.candidates,
+            authoritative_scorer_results: input.candidates.map(stripPresentationMetadata),
           }),
         },
       ],
@@ -90,6 +91,9 @@ export function enforceCandidateGrounding(
             member_id: candidate.member_id,
             full_name: candidate.full_name,
             business_name: candidate.business_name,
+            phone: candidate.phone ?? null,
+            email: candidate.email ?? null,
+            profile_url: resolveBxnProfileUrl(candidate.full_name, candidate.profile_url),
             need_key: candidate.need_key,
             need_label: recommendation.need_label || humanizeNeedKey(candidate.need_key),
             match_type: candidate.match_type,
@@ -207,6 +211,9 @@ export function buildDeterministicBoard(
       member_id: candidate.member_id,
       full_name: candidate.full_name,
       business_name: candidate.business_name,
+      phone: candidate.phone ?? null,
+      email: candidate.email ?? null,
+      profile_url: resolveBxnProfileUrl(candidate.full_name, candidate.profile_url),
       need_key: candidate.need_key,
       need_label: humanizeNeedKey(candidate.need_key),
       match_type: candidate.match_type,
@@ -258,6 +265,17 @@ function buildEmptyBoard(context: ScenarioContext): RecommendationBoard {
 
 function candidateKey(memberId: string, needKey: string): string {
   return `${memberId}:${needKey}`;
+}
+
+function stripPresentationMetadata(candidate: CandidateScorerResult): CandidateScorerResult {
+  const {
+    phone: _phone,
+    email: _email,
+    profile_url: _profileUrl,
+    ...reasoningCandidate
+  } = candidate;
+
+  return reasoningCandidate;
 }
 
 function humanizeNeedKey(needKey: string): string {

@@ -127,7 +127,8 @@ export class SupabaseSessionRepository implements SessionRepository {
     });
 
     assertNoSupabaseError(error, "Preview referral candidates");
-    return CandidateScorerResultsSchema.parse(data ?? []);
+    const candidates = CandidateScorerResultsSchema.parse(data ?? []);
+    return this.attachMemberPresentationMetadata(candidates);
   }
 
   async updateSessionState(
@@ -146,4 +147,40 @@ export class SupabaseSessionRepository implements SessionRepository {
 
     assertNoSupabaseError(error, "Update networking session state");
   }
+
+  private async attachMemberPresentationMetadata(
+    candidates: CandidateScorerResult[],
+  ): Promise<CandidateScorerResult[]> {
+    const memberIds = [...new Set(candidates.map((candidate) => candidate.member_id))];
+    if (memberIds.length === 0) return candidates;
+
+    const { data, error } = await this.supabase
+      .from("bxn_members")
+      .select("id,phone,email,profile_url")
+      .in("id", memberIds);
+
+    assertNoSupabaseError(error, "Fetch BXN member presentation metadata");
+
+    const metadataByMemberId = new Map(
+      (data ?? []).map((row) => [
+        String(row.id),
+        {
+          phone: normalizeOptionalString(row.phone),
+          email: normalizeOptionalString(row.email),
+          profile_url: normalizeOptionalString(row.profile_url),
+        },
+      ]),
+    );
+
+    return candidates.map((candidate) => ({
+      ...candidate,
+      phone: metadataByMemberId.get(candidate.member_id)?.phone ?? null,
+      email: metadataByMemberId.get(candidate.member_id)?.email ?? null,
+      profile_url: metadataByMemberId.get(candidate.member_id)?.profile_url ?? null,
+    }));
+  }
+}
+
+function normalizeOptionalString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

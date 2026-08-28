@@ -13,6 +13,8 @@ export const NetworkingDnaEnvSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   NETWORKING_DNA_RECENT_MESSAGE_LIMIT: z.coerce.number().int().min(1).max(50).default(12),
+  TELNYX_API_KEY: OptionalEnvStringSchema,
+  TELNYX_FROM_NUMBER: OptionalEnvStringSchema,
 });
 
 export type NetworkingDnaEnv = z.infer<typeof NetworkingDnaEnvSchema>;

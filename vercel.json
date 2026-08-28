@@ -2,6 +2,22 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/connectrobot/session/:id/message",
+      "destination": "/api/connectrobot/session-message?id=:id"
+    },
+    {
+      "source": "/api/connectrobot/referral-plan/text",
+      "destination": "/api/connectrobot/referral-plan-text"
+    },
+    {
+      "source": "/api/connectrobot/referral-plan/:token/pdf",
+      "destination": "/api/connectrobot/referral-plan-pdf?token=:token"
+    },
+    {
+      "source": "/api/connectrobot/referral-plan/:token",
+      "destination": "/api/connectrobot/referral-plan?token=:token"
+    },
+    {
       "source": "/api/networking-dna/session/:id/message",
       "destination": "/api/networking-dna/session-message?id=:id"
     },
