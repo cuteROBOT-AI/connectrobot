@@ -17,7 +17,6 @@ export interface Recommendation {
   phone?: string | null;
   email?: string | null;
   profile_url?: string | null;
-  profile_path?: string | null;
   need_key: string;
   need_label: string;
   display_tier: "recommended" | "also_consider";
@@ -49,4 +48,25 @@ export interface NetworkingDnaResponse {
   structured_context: unknown;
   recommendation_board: RecommendationBoardData;
   open_questions: OpenQuestion[];
+}
+
+export interface ReferralPlanSnapshot {
+  session_id: string;
+  scenario_summary: string;
+  headline: string;
+  recommendation_board: RecommendationBoardData;
+  created_at: string;
+}
+
+export interface ReferralPlanSnapshotResponse {
+  token: string;
+  snapshot_url: string;
+  pdf_url: string;
+  snapshot: ReferralPlanSnapshot;
+  created_at: string;
+  reused: boolean;
+}
+
+export interface TextReferralPlanResponse extends ReferralPlanSnapshotResponse {
+  sent: boolean;
 }

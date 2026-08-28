@@ -4,13 +4,20 @@ import { createConnectRobotSession, sendConnectRobotMessage } from "./api";
 import { ConversationPane } from "./ConversationPane";
 import { getChangedPresentedMemberIds } from "./presentation";
 import { RecommendationBoard } from "./RecommendationBoard";
-import type { ConversationMessage, OpenQuestion, RecommendationBoardData } from "./types";
+import type {
+  ConversationMessage,
+  OpenQuestion,
+  RecommendationBoardData,
+  ReferralPlanSnapshotResponse,
+} from "./types";
 
 export function ConnectRobotWorkspace() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [board, setBoard] = useState<RecommendationBoardData | null>(null);
   const [openQuestions, setOpenQuestions] = useState<OpenQuestion[]>([]);
+  const [savedSnapshot, setSavedSnapshot] =
+    useState<ReferralPlanSnapshotResponse | null>(null);
   const [highlightedMemberIds, setHighlightedMemberIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -50,6 +57,7 @@ export function ConnectRobotWorkspace() {
       );
       setBoard(response.recommendation_board);
       setOpenQuestions(response.open_questions);
+      setSavedSnapshot(null);
       if (highlightTimeoutRef.current) {
         window.clearTimeout(highlightTimeoutRef.current);
       }
@@ -97,9 +105,12 @@ export function ConnectRobotWorkspace() {
           onSend={handleSend}
         />
         <RecommendationBoard
+          sessionId={sessionId}
           board={board}
+          savedPlanUrl={savedSnapshot?.snapshot_url ?? null}
           isUpdating={isSending && Boolean(board)}
           highlightedMemberIds={highlightedMemberIds}
+          onSnapshotCreated={setSavedSnapshot}
         />
       </div>
     </main>

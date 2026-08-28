@@ -64,7 +64,7 @@ describe("ConnectROBOT recommendation presentation helpers", () => {
     expect(getChangedPresentedMemberIds(previous, next)).toEqual(["member-2"]);
   });
 
-  it("uses explicit profile URLs or paths only", () => {
+  it("uses explicit profile URLs only", () => {
     const [group] = buildPresentedCategoryGroups(
       buildBoard([
         recommendation({

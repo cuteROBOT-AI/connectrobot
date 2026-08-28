@@ -20,6 +20,7 @@ export function sanitizeRecommendationEvidence(evidence: string[]): string[] {
 
 export function formatRecommendationBoardAsText(
   board: RecommendationBoardData | null,
+  savedPlanUrl?: string | null,
 ): string {
   if (!board || board.total_recommendations === 0) {
     return "ConnectROBOT recommendation board\n\nNo recommendations yet.";
@@ -30,6 +31,7 @@ export function formatRecommendationBoardAsText(
     "",
     board.headline,
     board.session_summary ? `Scenario: ${board.session_summary}` : "",
+    savedPlanUrl ? `Saved plan: ${savedPlanUrl}` : "",
   ].filter(Boolean);
 
   for (const group of buildPresentedCategoryGroups(board)) {

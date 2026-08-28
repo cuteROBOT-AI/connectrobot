@@ -11,7 +11,6 @@ export interface PresentedRecommendation {
   phone: string | null;
   email: string | null;
   profile_url: string | null;
-  profile_path: string | null;
   display_tier: Recommendation["display_tier"];
   recommendations: Recommendation[];
   need_labels: string[];
@@ -87,7 +86,6 @@ export function getChangedPresentedMemberIds(
 
 export function getProfileHref(recommendation: PresentedRecommendation): string | null {
   if (recommendation.profile_url) return recommendation.profile_url;
-  if (recommendation.profile_path?.startsWith("/")) return recommendation.profile_path;
   return null;
 }
 
@@ -101,7 +99,6 @@ function createPresentedRecommendation(
     phone: recommendation.phone ?? null,
     email: recommendation.email ?? null,
     profile_url: recommendation.profile_url ?? null,
-    profile_path: recommendation.profile_path ?? null,
     display_tier: recommendation.display_tier,
     recommendations: [recommendation],
     need_labels: [recommendation.need_label],
@@ -140,10 +137,6 @@ function mergeRecommendation(
   if (!presented.profile_url && recommendation.profile_url) {
     presented.profile_url = recommendation.profile_url;
   }
-  if (!presented.profile_path && recommendation.profile_path) {
-    presented.profile_path = recommendation.profile_path;
-  }
-
   if (
     presented.display_tier === "also_consider" &&
     recommendation.display_tier === "recommended"
@@ -168,7 +161,6 @@ function getPresentedRecommendationFingerprint(
     phone: recommendation.phone,
     email: recommendation.email,
     profile_url: recommendation.profile_url,
-    profile_path: recommendation.profile_path,
   });
 }
 

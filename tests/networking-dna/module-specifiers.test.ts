@@ -3,7 +3,12 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const runtimeRoots = ["api/connectrobot", "api/networking-dna", "server/networking-dna"];
+const runtimeRoots = [
+  "api/connectrobot",
+  "api/networking-dna",
+  "server/connectrobot",
+  "server/networking-dna",
+];
 const importSpecifierPattern =
   /\bfrom\s+["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)/g;
 

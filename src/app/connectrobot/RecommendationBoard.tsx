@@ -14,6 +14,10 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { cn } from "../components/ui/utils";
 import {
+  createReferralPlanSnapshot,
+  sendReferralPlanText,
+} from "./api";
+import {
   formatRecommendationBoardAsText,
   sanitizeRecommendationEvidence,
   sanitizeRecommendationText,
@@ -23,23 +27,39 @@ import {
   getProfileHref,
   type PresentedRecommendation,
 } from "./presentation";
-import type { RecommendationBoardData } from "./types";
+import { TextReferralPlanModal } from "./TextReferralPlanModal";
+import type { RecommendationBoardData, ReferralPlanSnapshotResponse } from "./types";
 
 interface RecommendationBoardProps {
+  sessionId: string | null;
   board: RecommendationBoardData | null;
+  savedPlanUrl: string | null;
   isUpdating: boolean;
   highlightedMemberIds: Set<string>;
+  onSnapshotCreated: (snapshot: ReferralPlanSnapshotResponse) => void;
 }
 
 export function RecommendationBoard({
+  sessionId,
   board,
+  savedPlanUrl,
   isUpdating,
   highlightedMemberIds,
+  onSnapshotCreated,
 }: RecommendationBoardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  const boardText = useMemo(() => formatRecommendationBoardAsText(board), [board]);
+  const [exportState, setExportState] = useState<"idle" | "working" | "failed">("idle");
+  const [textState, setTextState] = useState<"idle" | "working" | "sent">("idle");
+  const [textModalOpen, setTextModalOpen] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [textError, setTextError] = useState<string | null>(null);
+  const boardText = useMemo(
+    () => formatRecommendationBoardAsText(board, savedPlanUrl),
+    [board, savedPlanUrl],
+  );
   const groups = useMemo(() => buildPresentedCategoryGroups(board), [board]);
   const hasRecommendations = groups.length > 0;
+  const actionsDisabled = !sessionId || !hasRecommendations || isUpdating;
 
   async function copyBoard() {
     try {
@@ -49,6 +69,66 @@ export function RecommendationBoard({
     } catch {
       setCopyState("failed");
       window.setTimeout(() => setCopyState("idle"), 2400);
+    }
+  }
+
+  async function exportPdf() {
+    if (!sessionId || !hasRecommendations || exportState === "working") return;
+
+    setExportState("working");
+    setActionMessage(null);
+
+    try {
+      const snapshot = await createReferralPlanSnapshot(sessionId);
+      onSnapshotCreated(snapshot);
+      const pdfResponse = await fetch(snapshot.pdf_url);
+      if (!pdfResponse.ok) throw new Error("The PDF could not be generated.");
+
+      const pdf = await pdfResponse.blob();
+      const url = URL.createObjectURL(pdf);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `connectrobot-referral-plan-${snapshot.token.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      setActionMessage("Referral plan PDF is ready.");
+      setExportState("idle");
+    } catch (error) {
+      setExportState("failed");
+      setActionMessage(
+        error instanceof Error ? error.message : "The PDF could not be generated.",
+      );
+    }
+  }
+
+  async function textReferralPlan(input: { name: string; phone: string }) {
+    if (!sessionId || textState === "working") return;
+
+    setTextState("working");
+    setTextError(null);
+    setActionMessage(null);
+
+    try {
+      const response = await sendReferralPlanText({
+        sessionId,
+        name: input.name,
+        phone: input.phone,
+      });
+      setTextModalOpen(false);
+      setTextState("sent");
+      setActionMessage("Referral plan text sent.");
+      onSnapshotCreated(response);
+      window.setTimeout(() => setTextState("idle"), 2200);
+    } catch (error) {
+      setTextState("idle");
+      setTextError(
+        error instanceof Error
+          ? error.message
+          : "The text could not be sent. Please try again.",
+      );
     }
   }
 
@@ -117,17 +197,34 @@ export function RecommendationBoard({
 
       <div className="shrink-0 border-t border-[#d8ddd6] bg-white px-5 py-3">
         <div className="grid grid-cols-4 gap-2">
-          <Button variant="outline" size="sm" disabled title="Export coming soon">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportPdf}
+            disabled={actionsDisabled || exportState === "working"}
+            title={
+              hasRecommendations ? "Export referral plan PDF" : "Create recommendations first"
+            }
+          >
             <FileDown className="size-4" />
-            Export
+            {exportState === "working" ? "Exporting" : "Export"}
           </Button>
           <Button variant="outline" size="sm" disabled title="Email coming soon">
             <Mail className="size-4" />
             Email
           </Button>
-          <Button variant="outline" size="sm" disabled title="Text coming soon">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setTextError(null);
+              setTextModalOpen(true);
+            }}
+            disabled={actionsDisabled || textState === "working"}
+            title={hasRecommendations ? "Text referral plan link" : "Create recommendations first"}
+          >
             <MessageSquareText className="size-4" />
-            Text
+            {textState === "working" ? "Sending" : "Text"}
           </Button>
           <Button
             variant="default"
@@ -148,7 +245,26 @@ export function RecommendationBoard({
             Clipboard access was unavailable. Select and copy from the board instead.
           </p>
         ) : null}
+        {actionMessage ? (
+          <p
+            className={cn(
+              "mt-2 text-xs",
+              exportState === "failed" ? "text-[#9d322c]" : "text-[#276255]",
+            )}
+          >
+            {actionMessage}
+          </p>
+        ) : null}
       </div>
+      <TextReferralPlanModal
+        isOpen={textModalOpen}
+        isSubmitting={textState === "working"}
+        error={textError}
+        onClose={() => {
+          if (textState !== "working") setTextModalOpen(false);
+        }}
+        onSubmit={textReferralPlan}
+      />
     </aside>
   );
 }
