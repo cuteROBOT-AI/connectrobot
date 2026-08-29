@@ -4,6 +4,8 @@ import {
   buildPresentedCategoryGroups,
   getChangedPresentedMemberIds,
   getProfileHref,
+  getNeedPresentationLabel,
+  splitPresentedRecommendationsByTier,
 } from "../../src/app/connectrobot/presentation.js";
 import type { RecommendationBoardData } from "../../src/app/connectrobot/types.js";
 
@@ -87,6 +89,63 @@ describe("ConnectROBOT recommendation presentation helpers", () => {
     expect(
       recommendationWithoutProfile && getProfileHref(recommendationWithoutProfile),
     ).toBeNull();
+  });
+
+  it("splits recommended and also-consider presentation tiers", () => {
+    const [group] = buildPresentedCategoryGroups(
+      buildBoard([
+        recommendation({ member_id: "recommended-1" }),
+        recommendation({
+          member_id: "secondary-1",
+          display_tier: "also_consider",
+          full_name: "Secondary Member",
+        }),
+        recommendation({
+          member_id: "secondary-2",
+          display_tier: "also_consider",
+          full_name: "Another Secondary Member",
+        }),
+      ]),
+    );
+
+    const tiers = splitPresentedRecommendationsByTier(group?.recommendations ?? []);
+
+    expect(tiers.recommended.map((item) => item.member_id)).toEqual([
+      "recommended-1",
+    ]);
+    expect(tiers.alsoConsider.map((item) => item.member_id)).toEqual([
+      "secondary-1",
+      "secondary-2",
+    ]);
+  });
+
+  it("renders human-readable capability labels while preserving taxonomy keys", () => {
+    const original = recommendation({
+      need_key: "general_contractor",
+      need_label: "general_contractor",
+    });
+    const board = buildBoard([original]);
+    const [group] = buildPresentedCategoryGroups(board);
+
+    expect(getNeedPresentationLabel(original)).toBe("General Contractor");
+    expect(group?.recommendations[0]?.need_labels).toEqual(["General Contractor"]);
+    expect(group?.recommendations[0]?.recommendations[0]?.need_key).toBe(
+      "general_contractor",
+    );
+    expect(group?.recommendations[0]?.recommendations[0]?.need_label).toBe(
+      "general_contractor",
+    );
+  });
+
+  it("humanizes unmapped canonical-looking capability labels", () => {
+    expect(
+      getNeedPresentationLabel(
+        recommendation({
+          need_key: "estate_planning",
+          need_label: "estate_planning",
+        }),
+      ),
+    ).toBe("Estate Planning");
   });
 });
 

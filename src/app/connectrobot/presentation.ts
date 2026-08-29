@@ -26,6 +26,26 @@ export interface PresentedCategoryGroup
   recommendations: PresentedRecommendation[];
 }
 
+export interface PresentedRecommendationTiers {
+  recommended: PresentedRecommendation[];
+  alsoConsider: PresentedRecommendation[];
+}
+
+const NEED_PRESENTATION_LABELS: Record<string, string> = {
+  ai_automation: "AI Automation",
+  bookkeeping: "Bookkeeping",
+  business_banking: "Business Banking",
+  driver_education: "Driver Education",
+  financial_planning: "Financial Planning",
+  general_contractor: "General Contractor",
+  home_inspection: "Home Inspection",
+  hvac: "HVAC",
+  managed_it: "Managed IT",
+  pest_control: "Pest Control",
+  roofing: "Roofing",
+  tax_strategy: "Tax Strategy",
+};
+
 export function buildPresentedCategoryGroups(
   board: RecommendationBoardData | null,
 ): PresentedCategoryGroup[] {
@@ -89,6 +109,29 @@ export function getProfileHref(recommendation: PresentedRecommendation): string 
   return null;
 }
 
+export function splitPresentedRecommendationsByTier(
+  recommendations: PresentedRecommendation[],
+): PresentedRecommendationTiers {
+  return {
+    recommended: recommendations.filter(
+      (recommendation) => recommendation.display_tier === "recommended",
+    ),
+    alsoConsider: recommendations.filter(
+      (recommendation) => recommendation.display_tier === "also_consider",
+    ),
+  };
+}
+
+export function getNeedPresentationLabel(recommendation: Recommendation): string {
+  const mapped = NEED_PRESENTATION_LABELS[recommendation.need_key];
+  if (mapped) return mapped;
+
+  const label = recommendation.need_label.trim();
+  if (label && !isCanonicalKeyLike(label)) return label;
+
+  return humanizeNeedKey(label || recommendation.need_key);
+}
+
 function createPresentedRecommendation(
   recommendation: Recommendation,
 ): PresentedRecommendation {
@@ -101,7 +144,7 @@ function createPresentedRecommendation(
     profile_url: recommendation.profile_url ?? null,
     display_tier: recommendation.display_tier,
     recommendations: [recommendation],
-    need_labels: [recommendation.need_label],
+    need_labels: [getNeedPresentationLabel(recommendation)],
     reason: recommendation.reason,
     evidence: uniqueStrings(recommendation.evidence),
     service_area_notes: uniqueNullableStrings([recommendation.service_area_note]),
@@ -117,7 +160,7 @@ function mergeRecommendation(
   presented.recommendations.push(recommendation);
   presented.need_labels = uniqueStrings([
     ...presented.need_labels,
-    recommendation.need_label,
+    getNeedPresentationLabel(recommendation),
   ]);
   presented.evidence = uniqueStrings([...presented.evidence, ...recommendation.evidence]);
   presented.service_area_notes = uniqueStrings([
@@ -170,4 +213,21 @@ function uniqueNullableStrings(values: Array<string | null | undefined>): string
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function isCanonicalKeyLike(value: string): boolean {
+  return /^[a-z0-9_]+$/.test(value);
+}
+
+function humanizeNeedKey(value: string): string {
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => {
+      if (part.toLowerCase() === "it") return "IT";
+      if (part.toLowerCase() === "ai") return "AI";
+      if (part.toLowerCase() === "hvac") return "HVAC";
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join(" ");
 }
