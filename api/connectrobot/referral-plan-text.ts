@@ -1,4 +1,8 @@
 import { normalizeUsPhone } from "../../server/connectrobot/contact.js";
+import {
+  sendEligibleMemberReferralSmsNotifications,
+  sendUserReferralPlanSmsOnce,
+} from "../../server/connectrobot/referral-notifications.js";
 import { TextReferralPlanRequestSchema } from "../../server/connectrobot/referral-plan-schemas.js";
 import {
   TelnyxSmsDeliveryService,
@@ -34,17 +38,46 @@ export default {
       });
       const snapshot = await repository.createOrReuseSnapshot(body.session_id, contactId);
       const response = referralPlanResponse(snapshot, request);
-
-      await new TelnyxSmsDeliveryService(
+      const smsDelivery = new TelnyxSmsDeliveryService(
         env.TELNYX_API_KEY,
         env.TELNYX_FROM_NUMBER,
-      ).send({
-        to: normalizedPhone,
+      );
+
+      await sendUserReferralPlanSmsOnce({
+        repository,
+        smsDelivery,
+        snapshot: snapshot.row,
+        contactId,
+        destinationPhone: normalizedPhone,
         text: buildReferralPlanSmsText({
           name: body.name,
           snapshotUrl: response.snapshot_url,
         }),
       });
+
+      try {
+        const memberNotifications = await sendEligibleMemberReferralSmsNotifications({
+          repository,
+          smsDelivery,
+          snapshot: snapshot.row,
+          snapshotUrl: response.snapshot_url,
+          userName: body.name,
+          userPhone: normalizedPhone,
+        });
+
+        if (
+          memberNotifications.sent ||
+          memberNotifications.skipped ||
+          memberNotifications.failed
+        ) {
+          console.info("connectrobot.memberReferralSms.summary", memberNotifications);
+        }
+      } catch (error) {
+        console.warn("connectrobot.memberReferralSms.unavailable", {
+          snapshot_id: snapshot.row.id,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
 
       return jsonResponse({ ...response, sent: true });
     } catch (error) {

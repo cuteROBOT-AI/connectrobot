@@ -9,6 +9,13 @@ import {
   type SessionContactInput,
 } from "./contact.js";
 import {
+  buildRecipientKey,
+  selectEligibleMemberSmsRecipients,
+  type MemberReferralSmsRecipient,
+  type ReferralNotificationReservation,
+  type ReserveReferralNotificationInput,
+} from "./referral-notifications.js";
+import {
   ReferralPlanSnapshotPayloadSchema,
   ReferralPlanSnapshotRowSchema,
   type ReferralPlanSnapshotPayload,
@@ -80,6 +87,106 @@ export class SupabaseReferralPlanRepository {
 
     assertNoSupabaseError(error, "Fetch referral plan snapshot");
     return data ? ReferralPlanSnapshotRowSchema.parse(data) : null;
+  }
+
+  async reserveNotification(
+    input: ReserveReferralNotificationInput,
+  ): Promise<ReferralNotificationReservation> {
+    const recipientKey = buildRecipientKey(input);
+    const payload = {
+      snapshot_id: input.snapshot_id,
+      recipient_type: input.recipient_type,
+      member_id: input.recipient_type === "member" ? input.member_id : null,
+      contact_id: input.recipient_type === "user" ? input.contact_id : null,
+      recipient_key: recipientKey,
+      destination_phone: input.destination_phone,
+      notification_type: input.notification_type,
+      status: "pending",
+      error_message: null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await this.supabase
+      .from("networking_referral_notifications")
+      .insert(payload)
+      .select("id,status")
+      .single();
+
+    if (isUniqueViolation(error)) {
+      const existing = await this.findNotificationByKey({
+        snapshot_id: input.snapshot_id,
+        notification_type: input.notification_type,
+        recipient_key: recipientKey,
+      });
+
+      if (existing.status === "failed") {
+        await this.resetNotificationForRetry(existing.id, input.destination_phone);
+        return { id: existing.id, shouldSend: true, status: "pending" };
+      }
+
+      return { id: existing.id, shouldSend: false, status: existing.status };
+    }
+
+    assertNoSupabaseError(error, "Reserve referral notification");
+    const row = NotificationReservationRowSchema.parse(data);
+    return { id: row.id, shouldSend: true, status: row.status };
+  }
+
+  async markNotificationSent(notificationId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("networking_referral_notifications")
+      .update({
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        error_message: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", notificationId);
+
+    assertNoSupabaseError(error, "Mark referral notification sent");
+  }
+
+  async markNotificationFailed(notificationId: string, error: unknown): Promise<void> {
+    const { error: updateError } = await this.supabase
+      .from("networking_referral_notifications")
+      .update({
+        status: "failed",
+        error_message: getErrorMessage(error).slice(0, 500),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", notificationId);
+
+    assertNoSupabaseError(updateError, "Mark referral notification failed");
+  }
+
+  async listEligibleMemberSmsRecipients(
+    snapshot: ReferralPlanSnapshotRow,
+  ): Promise<MemberReferralSmsRecipient[]> {
+    const recommendedMemberIds = [
+      ...new Set(
+        snapshot.snapshot.recommendation_board.category_groups.flatMap((group) =>
+          group.recommendations
+            .filter((recommendation) => recommendation.display_tier === "recommended")
+            .map((recommendation) => recommendation.member_id),
+        ),
+      ),
+    ];
+
+    if (recommendedMemberIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("bxn_members")
+      .select("id,full_name,business_name,phone,sms_referral_optin")
+      .in("id", recommendedMemberIds)
+      .eq("sms_referral_optin", true);
+
+    assertNoSupabaseError(error, "Fetch opted-in BXN member SMS recipients");
+
+    return selectEligibleMemberSmsRecipients({
+      snapshot: snapshot.snapshot,
+      members: (data ?? []).map((row) => MemberSmsEligibilityRowSchema.parse(row)),
+      normalizePhone: normalizeUsPhone,
+    });
   }
 
   async upsertSessionContact(input: SessionContactInput): Promise<string> {
@@ -176,6 +283,40 @@ export class SupabaseReferralPlanRepository {
     assertNoSupabaseError(error, "Find networking session contact by email");
     return data ? ContactIdRowSchema.parse(data) : null;
   }
+
+  private async findNotificationByKey(input: {
+    snapshot_id: string;
+    notification_type: string;
+    recipient_key: string;
+  }): Promise<{ id: string; status: "pending" | "sent" | "failed" }> {
+    const { data, error } = await this.supabase
+      .from("networking_referral_notifications")
+      .select("id,status")
+      .eq("snapshot_id", input.snapshot_id)
+      .eq("notification_type", input.notification_type)
+      .eq("recipient_key", input.recipient_key)
+      .single();
+
+    assertNoSupabaseError(error, "Fetch existing referral notification");
+    return NotificationReservationRowSchema.parse(data);
+  }
+
+  private async resetNotificationForRetry(
+    notificationId: string,
+    destinationPhone: string,
+  ): Promise<void> {
+    const { error } = await this.supabase
+      .from("networking_referral_notifications")
+      .update({
+        status: "pending",
+        destination_phone: destinationPhone,
+        error_message: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", notificationId);
+
+    assertNoSupabaseError(error, "Reset referral notification for retry");
+  }
 }
 
 export function createSnapshotResponse(
@@ -212,6 +353,14 @@ function assertNoSupabaseError(error: { message: string } | null, operation: str
   }
 }
 
+function isUniqueViolation(error: { code?: string; message: string } | null): boolean {
+  return error?.code === "23505" || /duplicate key|unique/i.test(error?.message ?? "");
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map(stableJson).join(",")}]`;
@@ -234,6 +383,59 @@ const ContactIdRowSchema = {
       throw new Error("Invalid networking session contact response");
     }
     return { id: (value as { id: string }).id };
+  },
+};
+
+const NotificationReservationRowSchema = {
+  parse(value: unknown): { id: string; status: "pending" | "sent" | "failed" } {
+    if (!value || typeof value !== "object") {
+      throw new Error("Invalid referral notification response");
+    }
+
+    const row = value as { id?: unknown; status?: unknown };
+    if (typeof row.id !== "string") {
+      throw new Error("Invalid referral notification id");
+    }
+    if (row.status !== "pending" && row.status !== "sent" && row.status !== "failed") {
+      throw new Error("Invalid referral notification status");
+    }
+
+    return { id: row.id, status: row.status };
+  },
+};
+
+const MemberSmsEligibilityRowSchema = {
+  parse(value: unknown): {
+    id: string;
+    full_name: string;
+    business_name: string | null;
+    phone: string | null;
+    sms_referral_optin: boolean | null;
+  } {
+    if (!value || typeof value !== "object") {
+      throw new Error("Invalid BXN member SMS eligibility response");
+    }
+
+    const row = value as {
+      id?: unknown;
+      full_name?: unknown;
+      business_name?: unknown;
+      phone?: unknown;
+      sms_referral_optin?: unknown;
+    };
+
+    if (typeof row.id !== "string" || typeof row.full_name !== "string") {
+      throw new Error("Invalid BXN member SMS eligibility identity");
+    }
+
+    return {
+      id: row.id,
+      full_name: row.full_name,
+      business_name: typeof row.business_name === "string" ? row.business_name : null,
+      phone: typeof row.phone === "string" ? row.phone : null,
+      sms_referral_optin:
+        typeof row.sms_referral_optin === "boolean" ? row.sms_referral_optin : null,
+    };
   },
 };
 

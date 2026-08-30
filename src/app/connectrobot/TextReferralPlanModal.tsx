@@ -76,6 +76,11 @@ export function TextReferralPlanModal({
             />
           </label>
 
+          <p className="rounded-md border border-[#e6ddc8] bg-[#fbf7eb] px-3 py-2 text-xs leading-5 text-[#665a42]">
+            Recommended BXN members who accept referral notifications may receive your
+            name, mobile number, and this referral context.
+          </p>
+
           {error ? (
             <p className="rounded-md border border-[#edd3d0] bg-[#fff6f4] px-3 py-2 text-sm text-[#8b312a]">
               {error}

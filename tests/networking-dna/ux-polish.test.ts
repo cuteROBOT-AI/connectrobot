@@ -112,6 +112,15 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(textActionIndex).toBeLessThan(exportActionIndex);
   });
 
+  it("discloses that opted-in recommended members may receive referral contact context", () => {
+    const source = readFileSync("src/app/connectrobot/TextReferralPlanModal.tsx", "utf8");
+
+    expect(source).toContain(
+      "Recommended BXN members who accept referral notifications may receive your",
+    );
+    expect(source).toContain("name, mobile number, and this referral context");
+  });
+
   it("supports reduced-motion users in the network thinking animation", () => {
     const source = readFileSync("src/styles/connectrobot.css", "utf8");
     const component = readFileSync("src/app/connectrobot/ConversationPane.tsx", "utf8");
