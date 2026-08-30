@@ -13,8 +13,8 @@
 }
 
 .connectrobot-network {
-  height: 85%;
-  width: 85%;
+  height: 68%;
+  width: 68%;
 }
 
 .connectrobot-thinking-activity {
@@ -48,6 +48,10 @@
 
 .link-f {
   animation-delay: 1.38s;
+}
+
+.link-g {
+  animation-delay: 1.65s;
 }
 
 .network-node,
@@ -95,14 +99,14 @@
 
 .connectrobot-omi-hub {
   animation: connectrobot-omi-pulse 2.7s ease-in-out infinite;
-  height: 2.55rem;
+  height: auto;
   left: 50%;
   opacity: 0.94;
   pointer-events: none;
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 2.55rem;
+  width: clamp(1rem, 13.5%, 1.9rem);
 }
 
 @keyframes connectrobot-activity-fade {

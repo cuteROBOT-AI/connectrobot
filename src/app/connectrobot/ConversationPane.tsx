@@ -115,7 +115,7 @@ export function ConversationPane({
             <Button
               type="submit"
               size="icon"
-              className="absolute bottom-3 right-3 size-10 bg-[#1f6f61] hover:bg-[#19594e]"
+              className="absolute right-3 top-1/2 size-10 -translate-y-1/2 bg-[#1f6f61] hover:bg-[#19594e]"
               disabled={isSending || draft.trim().length === 0}
               title="Send message"
             >
@@ -201,18 +201,19 @@ function ConnectRobotNetworkAnimation({ compact }: { compact: boolean }) {
       aria-hidden="true"
     >
       <svg className="connectrobot-network" viewBox="0 0 200 160" role="img">
-        <line className="network-link link-a" x1="34" y1="38" x2="100" y2="80" />
-        <line className="network-link link-b" x1="100" y1="80" x2="166" y2="42" />
-        <line className="network-link link-c" x1="100" y1="80" x2="156" y2="122" />
-        <line className="network-link link-d" x1="34" y1="122" x2="100" y2="80" />
-        <line className="network-link link-e" x1="34" y1="38" x2="156" y2="122" />
-        <line className="network-link link-f" x1="44" y1="80" x2="166" y2="42" />
+        <line className="network-link link-a" x1="40.75" y1="42.29" x2="79.75" y2="67.11" />
+        <line className="network-link link-b" x1="120.8" y1="68.03" x2="158.2" y2="46.49" />
+        <line className="network-link link-c" x1="119.2" y1="94.4" x2="148.8" y2="116.6" />
+        <line className="network-link link-d" x1="40.75" y1="117.71" x2="79.75" y2="92.89" />
+        <line className="network-link link-e" x1="40.59" y1="42.54" x2="148.59" y2="116.9" />
+        <line className="network-link link-f" x1="51" y1="80" x2="76" y2="80" />
+        <line className="network-link link-g" x1="50.68" y1="77.92" x2="157.41" y2="44.68" />
         <circle className="network-node node-a" cx="34" cy="38" r="8" />
         <circle className="network-node node-b" cx="34" cy="122" r="8" />
         <circle className="network-node node-c candidate" cx="166" cy="42" r="9" />
         <circle className="network-node node-d candidate" cx="156" cy="122" r="9" />
         <circle className="network-node node-e" cx="44" cy="80" r="7" />
-        <circle className="network-hub-ring" cx="100" cy="80" r="20" />
+        <circle className="network-hub-ring" cx="100" cy="80" r="24" />
       </svg>
       <img
         src="/connectROBOT_mark_solid.svg"

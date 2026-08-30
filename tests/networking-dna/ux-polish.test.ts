@@ -81,8 +81,9 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(component).toContain("connectrobot-network-stage");
     expect(component).not.toContain("border border-[#e1d7bc] bg-[#f8f5ed]");
     expect(styles).toContain("height: 14rem");
-    expect(styles).toContain("height: 85%");
-    expect(styles).toContain("width: 85%");
+    expect(styles).toContain("height: 68%");
+    expect(styles).toContain("width: 68%");
+    expect(styles).toContain("width: clamp(1rem, 13.5%, 1.9rem)");
   });
 
   it("keeps the submit action inside the composer field", () => {
@@ -90,7 +91,7 @@ describe("ConnectROBOT v0.1 UX polish", () => {
 
     expect(component).toContain('onSubmit={submitMessage} className="relative"');
     expect(component).toContain("pb-14 pr-14");
-    expect(component).toContain("absolute bottom-3 right-3 size-10");
+    expect(component).toContain("absolute right-3 top-1/2 size-10 -translate-y-1/2");
     expect(component).toContain("event.currentTarget.form?.requestSubmit()");
   });
 
