@@ -101,6 +101,7 @@ export function ConnectRobotWorkspace() {
           messages={messages}
           suggestion={topSuggestion}
           isSending={isSending}
+          hasRecommendationBoard={Boolean(board)}
           error={error}
           onSend={handleSend}
         />

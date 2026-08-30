@@ -25,6 +25,7 @@ import {
 import {
   buildPresentedCategoryGroups,
   getProfileHref,
+  splitPresentedRecommendationsByTier,
   type PresentedRecommendation,
 } from "./presentation";
 import { TextReferralPlanModal } from "./TextReferralPlanModal";
@@ -51,13 +52,23 @@ export function RecommendationBoard({
   const [exportState, setExportState] = useState<"idle" | "working" | "failed">("idle");
   const [textState, setTextState] = useState<"idle" | "working" | "sent">("idle");
   const [textModalOpen, setTextModalOpen] = useState(false);
+  const [expandedSecondaryGroups, setExpandedSecondaryGroups] = useState<
+    Record<string, boolean>
+  >({});
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [textError, setTextError] = useState<string | null>(null);
   const boardText = useMemo(
     () => formatRecommendationBoardAsText(board, savedPlanUrl),
     [board, savedPlanUrl],
   );
-  const groups = useMemo(() => buildPresentedCategoryGroups(board), [board]);
+  const groups = useMemo(
+    () =>
+      buildPresentedCategoryGroups(board).map((group) => ({
+        ...group,
+        tiers: splitPresentedRecommendationsByTier(group.recommendations),
+      })),
+    [board],
+  );
   const hasRecommendations = groups.length > 0;
   const actionsDisabled = !sessionId || !hasRecommendations || isUpdating;
 
@@ -164,7 +175,7 @@ export function RecommendationBoard({
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {groups.map((group) => (
               <section key={group.category_key} className="space-y-2">
                 <div className="flex items-end justify-between gap-3">
@@ -181,13 +192,50 @@ export function RecommendationBoard({
                   </span>
                 </div>
                 <div className="space-y-2">
-                  {group.recommendations.map((recommendation) => (
+                  {group.tiers.recommended.map((recommendation) => (
                     <RecommendationCard
                       key={recommendation.member_id}
                       recommendation={recommendation}
                       isHighlighted={highlightedMemberIds.has(recommendation.member_id)}
                     />
                   ))}
+                  {group.tiers.alsoConsider.length > 0 ? (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedSecondaryGroups((current) => ({
+                            ...current,
+                            [group.category_key]: !current[group.category_key],
+                          }))
+                        }
+                        aria-expanded={Boolean(expandedSecondaryGroups[group.category_key])}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[#d9d4c8] bg-[#f6f4ef] px-2.5 py-1.5 text-xs font-semibold text-[#6d716c] transition-colors hover:border-[#c9a24a] hover:text-[#243049]"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "size-3 transition-transform",
+                            expandedSecondaryGroups[group.category_key] ? "rotate-180" : "",
+                          )}
+                        />
+                        Also consider · {group.tiers.alsoConsider.length}
+                      </button>
+                      {expandedSecondaryGroups[group.category_key] ? (
+                        <div className="mt-2 space-y-2 border-l border-[#ded9cf] pl-3">
+                          {group.tiers.alsoConsider.map((recommendation) => (
+                            <RecommendationCard
+                              key={recommendation.member_id}
+                              recommendation={recommendation}
+                              isHighlighted={highlightedMemberIds.has(
+                                recommendation.member_id,
+                              )}
+                              isSecondary
+                            />
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               </section>
             ))}
@@ -196,7 +244,21 @@ export function RecommendationBoard({
       </div>
 
       <div className="shrink-0 border-t border-[#d8ddd6] bg-white px-5 py-3">
-        <div className="grid grid-cols-4 gap-2">
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => {
+            setTextError(null);
+            setTextModalOpen(true);
+          }}
+          disabled={actionsDisabled || textState === "working"}
+          className="mb-2 w-full bg-[#17213a] text-white shadow-sm hover:bg-[#243049]"
+          title={hasRecommendations ? "Text referral plan link" : "Create recommendations first"}
+        >
+          <MessageSquareText className="size-4" />
+          {textState === "working" ? "Sending plan" : "Text my recommendations"}
+        </Button>
+        <div className="grid grid-cols-3 gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -215,19 +277,6 @@ export function RecommendationBoard({
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => {
-              setTextError(null);
-              setTextModalOpen(true);
-            }}
-            disabled={actionsDisabled || textState === "working"}
-            title={hasRecommendations ? "Text referral plan link" : "Create recommendations first"}
-          >
-            <MessageSquareText className="size-4" />
-            {textState === "working" ? "Sending" : "Text"}
-          </Button>
-          <Button
-            variant="default"
             size="sm"
             onClick={copyBoard}
             title="Copy recommendation board"
@@ -272,9 +321,11 @@ export function RecommendationBoard({
 function RecommendationCard({
   recommendation,
   isHighlighted,
+  isSecondary = false,
 }: {
   recommendation: PresentedRecommendation;
   isHighlighted: boolean;
+  isSecondary?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const reason = sanitizeRecommendationText(recommendation.reason);
@@ -292,10 +343,10 @@ function RecommendationCard({
   return (
     <article
       className={cn(
-        "rounded-md border bg-white px-4 py-3 shadow-sm transition-[background-color,border-color,box-shadow,opacity] duration-500",
-        isPrimary
-          ? "border-[#a9c9bf] shadow-[0_1px_8px_rgba(31,111,97,0.08)]"
-          : "border-[#dde1dc] bg-[#fdfdfb] opacity-80",
+        "rounded-md border px-4 py-3 shadow-sm transition-[background-color,border-color,box-shadow,opacity] duration-500",
+        isPrimary && !isSecondary
+          ? "border-[#d4ba68] bg-white shadow-[0_1px_10px_rgba(201,162,74,0.16)]"
+          : "border-[#dde1dc] bg-[#f8f7f3] opacity-85",
         isHighlighted ? "border-[#d6bd6a] bg-[#fffdf2] shadow-md" : "",
       )}
     >
@@ -321,9 +372,9 @@ function RecommendationCard({
               variant={isPrimary ? "default" : "secondary"}
               className={cn(
                 "rounded-md text-[11px]",
-                isPrimary
-                  ? "bg-[#1f6f61] text-white"
-                  : "bg-[#edf0ec] text-[#626b64]",
+                isPrimary && !isSecondary
+                  ? "bg-[#17213a] text-white"
+                  : "bg-[#ebe8df] text-[#626b64]",
               )}
             >
               {isPrimary ? "Recommended" : "Also Consider"}
