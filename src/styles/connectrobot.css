@@ -26,32 +26,32 @@
   stroke-dasharray: 82;
   stroke-linecap: round;
   stroke-width: 2;
-  animation: connectrobot-link-flow 2.7s ease-in-out infinite;
+  animation: connectrobot-link-flow 1.35s ease-in-out infinite;
   opacity: 0.34;
 }
 
 .link-b {
-  animation-delay: 0.28s;
+  animation-delay: 0.14s;
 }
 
 .link-c {
-  animation-delay: 0.55s;
+  animation-delay: 0.28s;
 }
 
 .link-d {
-  animation-delay: 0.83s;
+  animation-delay: 0.42s;
 }
 
 .link-e {
-  animation-delay: 1.1s;
+  animation-delay: 0.55s;
 }
 
 .link-f {
-  animation-delay: 1.38s;
+  animation-delay: 0.69s;
 }
 
 .link-g {
-  animation-delay: 1.65s;
+  animation-delay: 0.83s;
 }
 
 .network-node,
@@ -61,7 +61,7 @@
 }
 
 .network-node {
-  animation: connectrobot-node-pulse 2.7s ease-in-out infinite;
+  animation: connectrobot-node-pulse 1.35s ease-in-out infinite;
   fill: #fdfbf5;
   opacity: 0.82;
   stroke: #243049;
@@ -74,23 +74,23 @@
 }
 
 .node-b {
-  animation-delay: 0.4s;
+  animation-delay: 0.2s;
 }
 
 .node-c {
-  animation-delay: 0.8s;
+  animation-delay: 0.4s;
 }
 
 .node-d {
-  animation-delay: 1.2s;
+  animation-delay: 0.6s;
 }
 
 .node-e {
-  animation-delay: 1.6s;
+  animation-delay: 0.8s;
 }
 
 .network-hub-ring {
-  animation: connectrobot-core-pulse 2.7s ease-in-out infinite;
+  animation: connectrobot-core-pulse 1.35s ease-in-out infinite;
   fill: #fdfbf5;
   opacity: 0.78;
   stroke: #c9a24a;
@@ -98,7 +98,7 @@
 }
 
 .connectrobot-omi-hub {
-  animation: connectrobot-omi-pulse 2.7s ease-in-out infinite;
+  animation: connectrobot-omi-pulse 1.35s ease-in-out infinite;
   height: auto;
   left: 50%;
   opacity: 0.94;

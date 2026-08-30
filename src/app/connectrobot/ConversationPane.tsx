@@ -104,7 +104,7 @@ export function ConversationPane({
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder="Tell me what is happening..."
-              className="min-h-24 resize-none border-[#cfc8bb] bg-white pb-14 pr-14 text-[#1f2722] shadow-sm"
+              className="min-h-24 resize-none border-[#cfc8bb] bg-white pb-4 pl-5 pr-20 pt-4 text-[#1f2722] shadow-sm"
               disabled={isSending}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {

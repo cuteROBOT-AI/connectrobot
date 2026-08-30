@@ -65,8 +65,8 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(component).not.toContain("stage-understanding");
     expect(component).not.toContain("stage-network");
     expect(component).not.toContain("stage-plan");
-    expect(styles).toContain("connectrobot-link-flow 2.7s ease-in-out infinite");
-    expect(styles).toContain("connectrobot-node-pulse 2.7s ease-in-out infinite");
+    expect(styles).toContain("connectrobot-link-flow 1.35s ease-in-out infinite");
+    expect(styles).toContain("connectrobot-node-pulse 1.35s ease-in-out infinite");
     expect(component).toContain('src="/connectROBOT_mark_solid.svg"');
     expect(component).not.toContain("className=\"omi-mark\"");
   });
@@ -90,7 +90,7 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     const component = readFileSync("src/app/connectrobot/ConversationPane.tsx", "utf8");
 
     expect(component).toContain('onSubmit={submitMessage} className="relative"');
-    expect(component).toContain("pb-14 pr-14");
+    expect(component).toContain("pb-4 pl-5 pr-20 pt-4");
     expect(component).toContain("absolute right-3 top-1/2 size-10 -translate-y-1/2");
     expect(component).toContain("event.currentTarget.form?.requestSubmit()");
   });
