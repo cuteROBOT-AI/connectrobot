@@ -50,7 +50,9 @@ export function RecommendationBoard({
 }: RecommendationBoardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [exportState, setExportState] = useState<"idle" | "working" | "failed">("idle");
-  const [textState, setTextState] = useState<"idle" | "working" | "sent">("idle");
+  const [textState, setTextState] = useState<
+    "idle" | "working" | "sent" | "already_sent"
+  >("idle");
   const [textModalOpen, setTextModalOpen] = useState(false);
   const [expandedSecondaryGroups, setExpandedSecondaryGroups] = useState<
     Record<string, boolean>
@@ -128,13 +130,9 @@ export function RecommendationBoard({
         name: input.name,
         phone: input.phone,
       });
-      setTextModalOpen(false);
-      setTextState(response.sent ? "sent" : "idle");
-      setActionMessage(
-        response.sent
-          ? "Referral plan text sent."
-          : "You can send this again after you make changes.",
-      );
+      setTextModalOpen(!response.sent);
+      setTextState(response.sent ? "sent" : "already_sent");
+      setActionMessage(response.sent ? "Referral plan text sent." : null);
       onSnapshotCreated(response);
       if (response.sent) {
         window.setTimeout(() => setTextState("idle"), 2200);
@@ -255,6 +253,7 @@ export function RecommendationBoard({
           size="sm"
           onClick={() => {
             setTextError(null);
+            setTextState("idle");
             setTextModalOpen(true);
           }}
           disabled={actionsDisabled || textState === "working"}
@@ -314,9 +313,13 @@ export function RecommendationBoard({
       <TextReferralPlanModal
         isOpen={textModalOpen}
         isSubmitting={textState === "working"}
+        deliveryStatus={textState === "already_sent" ? "already_sent" : "form"}
         error={textError}
         onClose={() => {
-          if (textState !== "working") setTextModalOpen(false);
+          if (textState !== "working") {
+            setTextModalOpen(false);
+            if (textState === "already_sent") setTextState("idle");
+          }
         }}
         onSubmit={textReferralPlan}
       />

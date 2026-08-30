@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 interface TextReferralPlanModalProps {
   isOpen: boolean;
   isSubmitting: boolean;
+  deliveryStatus: "form" | "already_sent";
   error: string | null;
   onClose: () => void;
   onSubmit: (input: { name: string; phone: string }) => Promise<void>;
@@ -14,6 +15,7 @@ interface TextReferralPlanModalProps {
 export function TextReferralPlanModal({
   isOpen,
   isSubmitting,
+  deliveryStatus,
   error,
   onClose,
   onSubmit,
@@ -52,54 +54,72 @@ export function TextReferralPlanModal({
           </button>
         </div>
 
-        <form onSubmit={submit} className="space-y-4 px-5 py-5">
-          <label className="block text-sm font-medium text-[#26302a]">
-            Name
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              className="mt-1 h-10 w-full rounded-md border border-[#cfc8bb] px-3 text-sm outline-none focus:border-[#1f6f61]"
-              disabled={isSubmitting}
-              required
-            />
-          </label>
+        {deliveryStatus === "already_sent" ? (
+          <div className="space-y-4 px-5 py-5">
+            <div>
+              <h3 className="text-lg font-semibold text-[#19201c]">Already sent</h3>
+              <p className="mt-2 text-sm leading-6 text-[#58625c]">
+                You can send this again after you make changes.
+              </p>
+            </div>
+            <Button
+              type="button"
+              className="w-full bg-[#1f6f61] hover:bg-[#19594e]"
+              onClick={onClose}
+            >
+              OK
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-4 px-5 py-5">
+            <label className="block text-sm font-medium text-[#26302a]">
+              Name
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className="mt-1 h-10 w-full rounded-md border border-[#cfc8bb] px-3 text-sm outline-none focus:border-[#1f6f61]"
+                disabled={isSubmitting}
+                required
+              />
+            </label>
 
-          <label className="block text-sm font-medium text-[#26302a]">
-            Mobile number
-            <input
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              className="mt-1 h-10 w-full rounded-md border border-[#cfc8bb] px-3 text-sm outline-none focus:border-[#1f6f61]"
-              disabled={isSubmitting}
-              inputMode="tel"
-              required
-            />
-          </label>
+            <label className="block text-sm font-medium text-[#26302a]">
+              Mobile number
+              <input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                className="mt-1 h-10 w-full rounded-md border border-[#cfc8bb] px-3 text-sm outline-none focus:border-[#1f6f61]"
+                disabled={isSubmitting}
+                inputMode="tel"
+                required
+              />
+            </label>
 
-          <p className="rounded-md border border-[#e6ddc8] bg-[#fbf7eb] px-3 py-2 text-xs leading-5 text-[#665a42]">
-            Recommended BXN members who accept referral notifications may receive your
-            name, mobile number, and this referral context.
-          </p>
-
-          {error ? (
-            <p className="rounded-md border border-[#edd3d0] bg-[#fff6f4] px-3 py-2 text-sm text-[#8b312a]">
-              {error}
+            <p className="rounded-md border border-[#e6ddc8] bg-[#fbf7eb] px-3 py-2 text-xs leading-5 text-[#665a42]">
+              Recommended BXN members who accept referral notifications may receive your
+              name, mobile number, and this referral context.
             </p>
-          ) : null}
 
-          <Button
-            type="submit"
-            className="w-full bg-[#1f6f61] hover:bg-[#19594e]"
-            disabled={isSubmitting || !name.trim() || !phone.trim()}
-          >
-            {isSubmitting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <MessageSquareText className="size-4" />
-            )}
-            Text my recommendations
-          </Button>
-        </form>
+            {error ? (
+              <p className="rounded-md border border-[#edd3d0] bg-[#fff6f4] px-3 py-2 text-sm text-[#8b312a]">
+                {error}
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              className="w-full bg-[#1f6f61] hover:bg-[#19594e]"
+              disabled={isSubmitting || !name.trim() || !phone.trim()}
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <MessageSquareText className="size-4" />
+              )}
+              Text my recommendations
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   );
