@@ -5,6 +5,14 @@ import { describe, expect, it } from "vitest";
 import { CONNECTROBOT_THINKING_ACTIVITIES } from "../../src/app/connectrobot/thinking.js";
 
 describe("ConnectROBOT v0.1 UX polish", () => {
+  it("uses the refined primary conversation heading while preserving the BXN eyebrow", () => {
+    const component = readFileSync("src/app/connectrobot/ConversationPane.tsx", "utf8");
+
+    expect(component).toContain("BXN ConnectROBOT");
+    expect(component).toContain("What’s going on?");
+    expect(component).not.toContain("Who can we help today?");
+  });
+
   it("uses the approved rotating thinking activity states", () => {
     expect(CONNECTROBOT_THINKING_ACTIVITIES).toEqual([
       {
@@ -57,8 +65,33 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(component).not.toContain("stage-understanding");
     expect(component).not.toContain("stage-network");
     expect(component).not.toContain("stage-plan");
-    expect(styles).toContain("connectrobot-link-flow 5.4s ease-in-out infinite");
-    expect(styles).toContain("connectrobot-node-pulse 5.4s ease-in-out infinite");
+    expect(styles).toContain("connectrobot-link-flow 2.7s ease-in-out infinite");
+    expect(styles).toContain("connectrobot-node-pulse 2.7s ease-in-out infinite");
+    expect(component).toContain('src="/connectROBOT_mark_solid.svg"');
+    expect(component).not.toContain("className=\"omi-mark\"");
+  });
+
+  it("places the Omi mark as a static asset hub without the old framed inner panel", () => {
+    const component = readFileSync("src/app/connectrobot/ConversationPane.tsx", "utf8");
+    const styles = readFileSync("src/styles/connectrobot.css", "utf8");
+    const asset = readFileSync("public/connectROBOT_mark_solid.svg", "utf8");
+
+    expect(asset).toContain("<svg");
+    expect(component).toContain("connectrobot-omi-hub");
+    expect(component).toContain("connectrobot-network-stage");
+    expect(component).not.toContain("border border-[#e1d7bc] bg-[#f8f5ed]");
+    expect(styles).toContain("height: 14rem");
+    expect(styles).toContain("height: 85%");
+    expect(styles).toContain("width: 85%");
+  });
+
+  it("keeps the submit action inside the composer field", () => {
+    const component = readFileSync("src/app/connectrobot/ConversationPane.tsx", "utf8");
+
+    expect(component).toContain('onSubmit={submitMessage} className="relative"');
+    expect(component).toContain("pb-14 pr-14");
+    expect(component).toContain("absolute bottom-3 right-3 size-10");
+    expect(component).toContain("event.currentTarget.form?.requestSubmit()");
   });
 
   it("keeps also-consider results collapsed behind a quiet disclosure by default", () => {

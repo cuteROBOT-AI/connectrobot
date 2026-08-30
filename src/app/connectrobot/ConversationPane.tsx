@@ -50,7 +50,7 @@ export function ConversationPane({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#787065]">
           BXN ConnectROBOT
         </p>
-        <h1 className="text-2xl font-semibold text-[#171b18]">Who can we help today?</h1>
+        <h1 className="text-2xl font-semibold text-[#171b18]">What’s going on?</h1>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
@@ -99,12 +99,12 @@ export function ConversationPane({
             </div>
           ) : null}
 
-          <form onSubmit={submitMessage} className="flex items-end gap-2">
+          <form onSubmit={submitMessage} className="relative">
             <Textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder="Tell me what is happening..."
-              className="min-h-20 border-[#cfc8bb] bg-white text-[#1f2722] shadow-sm"
+              className="min-h-24 resize-none border-[#cfc8bb] bg-white pb-14 pr-14 text-[#1f2722] shadow-sm"
               disabled={isSending}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
@@ -115,7 +115,7 @@ export function ConversationPane({
             <Button
               type="submit"
               size="icon"
-              className="mb-1 size-10 bg-[#1f6f61] hover:bg-[#19594e]"
+              className="absolute bottom-3 right-3 size-10 bg-[#1f6f61] hover:bg-[#19594e]"
               disabled={isSending || draft.trim().length === 0}
               title="Send message"
             >
@@ -160,7 +160,7 @@ function ThinkingCard({ compact }: { compact: boolean }) {
           : "mr-auto w-full rounded-md border border-[#d8d0bd] bg-white px-5 py-5 text-[#243049] shadow-sm"
       }
     >
-      <div className={compact ? "flex items-center gap-4" : "grid gap-5 md:grid-cols-[180px_1fr]"}>
+      <div className={compact ? "flex items-center gap-4" : "grid gap-5 md:grid-cols-[260px_1fr]"}>
         <ConnectRobotNetworkAnimation compact={compact} />
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#7a6125]">
@@ -195,27 +195,31 @@ function ConnectRobotNetworkAnimation({ compact }: { compact: boolean }) {
     <div
       className={
         compact
-          ? "relative hidden h-24 w-24 shrink-0 overflow-hidden rounded-md border border-[#e1d7bc] bg-[#f8f5ed] sm:block"
-          : "relative h-40 overflow-hidden rounded-md border border-[#e1d7bc] bg-[#f8f5ed]"
+          ? "connectrobot-network-stage connectrobot-network-stage-compact hidden shrink-0 sm:block"
+          : "connectrobot-network-stage"
       }
       aria-hidden="true"
     >
-      <svg className="connectrobot-network" viewBox="0 0 180 140" role="img">
-        <line className="network-link link-a" x1="34" y1="38" x2="86" y2="70" />
-        <line className="network-link link-b" x1="86" y1="70" x2="144" y2="42" />
-        <line className="network-link link-c" x1="86" y1="70" x2="132" y2="104" />
-        <line className="network-link link-d" x1="34" y1="102" x2="86" y2="70" />
-        <line className="network-link link-e" x1="34" y1="38" x2="132" y2="104" />
-        <circle className="network-node node-a" cx="34" cy="38" r="7" />
-        <circle className="network-node node-b" cx="34" cy="102" r="7" />
-        <circle className="network-node node-c candidate" cx="144" cy="42" r="8" />
-        <circle className="network-node node-d candidate" cx="132" cy="104" r="8" />
-        <circle className="network-core" cx="86" cy="70" r="11" />
-        <path
-          className="omi-mark"
-          d="M83 65h6c4 0 7 3 7 7s-3 7-7 7h-6c-4 0-7-3-7-7s3-7 7-7Zm0 4a3 3 0 0 0 0 6h6a3 3 0 0 0 0-6h-6Z"
-        />
+      <svg className="connectrobot-network" viewBox="0 0 200 160" role="img">
+        <line className="network-link link-a" x1="34" y1="38" x2="100" y2="80" />
+        <line className="network-link link-b" x1="100" y1="80" x2="166" y2="42" />
+        <line className="network-link link-c" x1="100" y1="80" x2="156" y2="122" />
+        <line className="network-link link-d" x1="34" y1="122" x2="100" y2="80" />
+        <line className="network-link link-e" x1="34" y1="38" x2="156" y2="122" />
+        <line className="network-link link-f" x1="44" y1="80" x2="166" y2="42" />
+        <circle className="network-node node-a" cx="34" cy="38" r="8" />
+        <circle className="network-node node-b" cx="34" cy="122" r="8" />
+        <circle className="network-node node-c candidate" cx="166" cy="42" r="9" />
+        <circle className="network-node node-d candidate" cx="156" cy="122" r="9" />
+        <circle className="network-node node-e" cx="44" cy="80" r="7" />
+        <circle className="network-hub-ring" cx="100" cy="80" r="20" />
       </svg>
+      <img
+        src="/connectROBOT_mark_solid.svg"
+        alt=""
+        className="connectrobot-omi-hub"
+        draggable={false}
+      />
     </div>
   );
 }
