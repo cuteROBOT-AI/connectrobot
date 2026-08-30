@@ -1,16 +1,3 @@
-alter table public.bxn_members
-  add column if not exists sms_referral_optin boolean not null default false;
-
-alter table public.bxn_members
-  alter column sms_referral_optin set default false;
-
-update public.bxn_members
-set sms_referral_optin = false
-where sms_referral_optin is null;
-
-alter table public.bxn_members
-  alter column sms_referral_optin set not null;
-
 create table if not exists public.networking_referral_notifications (
   id uuid primary key default gen_random_uuid(),
   snapshot_id uuid not null references public.networking_export_snapshots(id) on delete cascade,

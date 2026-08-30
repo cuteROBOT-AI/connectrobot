@@ -43,7 +43,7 @@ export default {
         env.TELNYX_FROM_NUMBER,
       );
 
-      await sendUserReferralPlanSmsOnce({
+      const userSmsDelivery = await sendUserReferralPlanSmsOnce({
         repository,
         smsDelivery,
         snapshot: snapshot.row,
@@ -79,7 +79,11 @@ export default {
         });
       }
 
-      return jsonResponse({ ...response, sent: true });
+      return jsonResponse({
+        ...response,
+        sent: userSmsDelivery === "sent",
+        delivery_status: userSmsDelivery,
+      });
     } catch (error) {
       return errorResponse(error);
     }

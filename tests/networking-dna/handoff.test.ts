@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PDFDict, PDFDocument, PDFName, PDFString } from "pdf-lib";
@@ -58,6 +58,18 @@ describe("ConnectROBOT handoff helpers", () => {
     expect(resolveBxnProfileUrl("Miguel Escobedo", "https://example.com/profile")).toBe(
       "https://example.com/profile",
     );
+    expect(
+      resolveBxnProfileUrl(
+        "George Tagg Jr",
+        "https://bxnmembers.com/user/george.tagg+jr/",
+      ),
+    ).toBe("https://bxnmembers.com/user/george.tagg+jr/");
+    expect(
+      resolveBxnProfileUrl(
+        "Isael and Petra Lugo",
+        "https://bxnmembers.com/user/petra.lugo/",
+      ),
+    ).toBe("https://bxnmembers.com/user/petra.lugo/");
   });
 
   it("normalizes mobile numbers for SMS delivery", () => {
@@ -176,10 +188,15 @@ describe("ConnectROBOT handoff helpers", () => {
 describe("ConnectROBOT referral SMS safety rails", () => {
   it("records the live sms_referral_optin safety rail with default false and NOT NULL", () => {
     const migration = readFileSync(
-      "supabase/migrations/20260830092311_add_referral_sms_notifications.sql",
+      "supabase/migrations/20260830141235_add_member_sms_referral_optin.sql",
       "utf8",
     );
 
+    expect(
+      existsSync(
+        "supabase/migrations/20260830092311_add_referral_sms_notifications.sql",
+      ),
+    ).toBe(false);
     expect(migration).toMatch(
       /add column if not exists sms_referral_optin boolean not null default false/i,
     );
@@ -190,7 +207,7 @@ describe("ConnectROBOT referral SMS safety rails", () => {
 
   it("uses a durable recipient and snapshot notification uniqueness key", () => {
     const migration = readFileSync(
-      "supabase/migrations/20260830092311_add_referral_sms_notifications.sql",
+      "supabase/migrations/20260830163631_add_referral_sms_notifications.sql",
       "utf8",
     );
 
@@ -327,22 +344,26 @@ describe("ConnectROBOT referral SMS safety rails", () => {
     const smsDelivery = { send: vi.fn(async () => undefined) };
     const snapshot = buildSnapshotRow(SNAPSHOT_ID);
 
-    await sendUserReferralPlanSmsOnce({
-      repository,
-      smsDelivery,
-      snapshot,
-      contactId: CONTACT_ID,
-      destinationPhone: "+15125550142",
-      text: "User referral plan link",
-    });
-    await sendUserReferralPlanSmsOnce({
-      repository,
-      smsDelivery,
-      snapshot,
-      contactId: CONTACT_ID,
-      destinationPhone: "+15125550142",
-      text: "User referral plan link",
-    });
+    await expect(
+      sendUserReferralPlanSmsOnce({
+        repository,
+        smsDelivery,
+        snapshot,
+        contactId: CONTACT_ID,
+        destinationPhone: "+15125550142",
+        text: "User referral plan link",
+      }),
+    ).resolves.toBe("sent");
+    await expect(
+      sendUserReferralPlanSmsOnce({
+        repository,
+        smsDelivery,
+        snapshot,
+        contactId: CONTACT_ID,
+        destinationPhone: "+15125550142",
+        text: "User referral plan link",
+      }),
+    ).resolves.toBe("already_sent");
 
     expect(smsDelivery.send).toHaveBeenCalledTimes(1);
     expect(repository.sentNotifications()).toEqual([

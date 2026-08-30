@@ -110,6 +110,18 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(textActionIndex).toBeGreaterThan(-1);
     expect(exportActionIndex).toBeGreaterThan(-1);
     expect(textActionIndex).toBeLessThan(exportActionIndex);
+    expect(source).toContain("text-[15px]");
+    expect(source).toContain("transition-colors duration-150 hover:bg-[#243354]");
+  });
+
+  it("shows duplicate-send feedback instead of claiming a suppressed SMS was sent", () => {
+    const boardSource = readFileSync("src/app/connectrobot/RecommendationBoard.tsx", "utf8");
+    const apiSource = readFileSync("api/connectrobot/referral-plan-text.ts", "utf8");
+
+    expect(apiSource).toContain("sent: userSmsDelivery === \"sent\"");
+    expect(apiSource).toContain("delivery_status: userSmsDelivery");
+    expect(boardSource).toContain("You can send this again after you make changes.");
+    expect(boardSource).toContain("response.sent");
   });
 
   it("discloses that opted-in recommended members may receive referral contact context", () => {

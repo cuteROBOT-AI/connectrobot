@@ -129,10 +129,16 @@ export function RecommendationBoard({
         phone: input.phone,
       });
       setTextModalOpen(false);
-      setTextState("sent");
-      setActionMessage("Referral plan text sent.");
+      setTextState(response.sent ? "sent" : "idle");
+      setActionMessage(
+        response.sent
+          ? "Referral plan text sent."
+          : "You can send this again after you make changes.",
+      );
       onSnapshotCreated(response);
-      window.setTimeout(() => setTextState("idle"), 2200);
+      if (response.sent) {
+        window.setTimeout(() => setTextState("idle"), 2200);
+      }
     } catch (error) {
       setTextState("idle");
       setTextError(
@@ -252,7 +258,7 @@ export function RecommendationBoard({
             setTextModalOpen(true);
           }}
           disabled={actionsDisabled || textState === "working"}
-          className="mb-2 w-full bg-[#17213a] text-white shadow-sm hover:bg-[#243049]"
+          className="mb-2 w-full bg-[#17213a] text-[15px] text-white shadow-sm transition-colors duration-150 hover:bg-[#243354]"
           title={hasRecommendations ? "Text referral plan link" : "Create recommendations first"}
         >
           <MessageSquareText className="size-4" />
