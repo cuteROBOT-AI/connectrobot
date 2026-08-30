@@ -110,6 +110,33 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(textActionIndex).toBeGreaterThan(-1);
     expect(exportActionIndex).toBeGreaterThan(-1);
     expect(textActionIndex).toBeLessThan(exportActionIndex);
+    expect(source).toContain("text-[15px]");
+    expect(source).toContain("transition-colors duration-150 hover:bg-[#243354]");
+  });
+
+  it("shows duplicate-send feedback as a modal completion state", () => {
+    const boardSource = readFileSync("src/app/connectrobot/RecommendationBoard.tsx", "utf8");
+    const modalSource = readFileSync("src/app/connectrobot/TextReferralPlanModal.tsx", "utf8");
+    const apiSource = readFileSync("api/connectrobot/referral-plan-text.ts", "utf8");
+
+    expect(apiSource).toContain("sent: userSmsDelivery === \"sent\"");
+    expect(apiSource).toContain("delivery_status: userSmsDelivery");
+    expect(boardSource).toContain('setTextState(response.sent ? "sent" : "already_sent")');
+    expect(boardSource).toContain('deliveryStatus={textState === "already_sent" ? "already_sent" : "form"}');
+    expect(boardSource).toContain('setActionMessage(response.sent ? "Referral plan text sent." : null)');
+    expect(boardSource).not.toContain("You can send this again after you make changes.");
+    expect(modalSource).toContain("Already sent");
+    expect(modalSource).toContain("You can send this again after you make changes.");
+    expect(modalSource).toContain("OK");
+  });
+
+  it("discloses that opted-in recommended members may receive referral contact context", () => {
+    const source = readFileSync("src/app/connectrobot/TextReferralPlanModal.tsx", "utf8");
+
+    expect(source).toContain(
+      "Recommended BXN members who accept referral notifications may receive your",
+    );
+    expect(source).toContain("name, mobile number, and this referral context");
   });
 
   it("supports reduced-motion users in the network thinking animation", () => {

@@ -69,4 +69,5 @@ export interface ReferralPlanSnapshotResponse {
 
 export interface TextReferralPlanResponse extends ReferralPlanSnapshotResponse {
   sent: boolean;
+  delivery_status?: "sent" | "already_sent";
 }

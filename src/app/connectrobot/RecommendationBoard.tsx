@@ -50,7 +50,9 @@ export function RecommendationBoard({
 }: RecommendationBoardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [exportState, setExportState] = useState<"idle" | "working" | "failed">("idle");
-  const [textState, setTextState] = useState<"idle" | "working" | "sent">("idle");
+  const [textState, setTextState] = useState<
+    "idle" | "working" | "sent" | "already_sent"
+  >("idle");
   const [textModalOpen, setTextModalOpen] = useState(false);
   const [expandedSecondaryGroups, setExpandedSecondaryGroups] = useState<
     Record<string, boolean>
@@ -128,11 +130,13 @@ export function RecommendationBoard({
         name: input.name,
         phone: input.phone,
       });
-      setTextModalOpen(false);
-      setTextState("sent");
-      setActionMessage("Referral plan text sent.");
+      setTextModalOpen(!response.sent);
+      setTextState(response.sent ? "sent" : "already_sent");
+      setActionMessage(response.sent ? "Referral plan text sent." : null);
       onSnapshotCreated(response);
-      window.setTimeout(() => setTextState("idle"), 2200);
+      if (response.sent) {
+        window.setTimeout(() => setTextState("idle"), 2200);
+      }
     } catch (error) {
       setTextState("idle");
       setTextError(
@@ -249,10 +253,11 @@ export function RecommendationBoard({
           size="sm"
           onClick={() => {
             setTextError(null);
+            setTextState("idle");
             setTextModalOpen(true);
           }}
           disabled={actionsDisabled || textState === "working"}
-          className="mb-2 w-full bg-[#17213a] text-white shadow-sm hover:bg-[#243049]"
+          className="mb-2 w-full bg-[#17213a] text-[15px] text-white shadow-sm transition-colors duration-150 hover:bg-[#243354]"
           title={hasRecommendations ? "Text referral plan link" : "Create recommendations first"}
         >
           <MessageSquareText className="size-4" />
@@ -308,9 +313,13 @@ export function RecommendationBoard({
       <TextReferralPlanModal
         isOpen={textModalOpen}
         isSubmitting={textState === "working"}
+        deliveryStatus={textState === "already_sent" ? "already_sent" : "form"}
         error={textError}
         onClose={() => {
-          if (textState !== "working") setTextModalOpen(false);
+          if (textState !== "working") {
+            setTextModalOpen(false);
+            if (textState === "already_sent") setTextState("idle");
+          }
         }}
         onSubmit={textReferralPlan}
       />
