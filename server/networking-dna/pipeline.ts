@@ -132,11 +132,20 @@ function parsePreviousContext(value: unknown): ScenarioContext | null {
 
 export function buildAssistantMessage(board: RecommendationBoard): string {
   const recommendations = board.category_groups.flatMap((group) => group.recommendations);
-  const recommended = recommendations.filter(
-    (recommendation) => recommendation.display_tier === "recommended",
+  const recommended = uniqueByMemberId(
+    recommendations.filter(
+      (recommendation) => recommendation.display_tier === "recommended",
+    ),
   );
-  const supporting = recommendations.filter(
-    (recommendation) => recommendation.display_tier === "also_consider",
+  const recommendedMemberIds = new Set(
+    recommended.map((recommendation) => recommendation.member_id),
+  );
+  const supporting = uniqueByMemberId(
+    recommendations.filter(
+      (recommendation) =>
+        recommendation.display_tier === "also_consider" &&
+        !recommendedMemberIds.has(recommendation.member_id),
+    ),
   );
 
   if (recommendations.length === 0) {
@@ -151,7 +160,10 @@ export function buildAssistantMessage(board: RecommendationBoard): string {
     }
 
     if (recommended.length === 1) {
-      return `I found one strong place to start: ${memberText}. I also see a few supporting options on the board.`;
+      const supportingText =
+        supporting.length === 1 ? "one supporting option" : "a few supporting options";
+
+      return `I found one strong place to start: ${memberText}. I also see ${supportingText} on the board.`;
     }
 
     return `There are a few useful BXN members to consider. I would start with ${memberText}.`;
@@ -168,6 +180,18 @@ function formatMemberHighlights(
   recommendations: RecommendationBoard["category_groups"][number]["recommendations"],
 ): string {
   return recommendations.map(formatMemberHighlight).join(" and ");
+}
+
+function uniqueByMemberId(
+  recommendations: RecommendationBoard["category_groups"][number]["recommendations"],
+): RecommendationBoard["category_groups"][number]["recommendations"] {
+  const seen = new Set<string>();
+
+  return recommendations.filter((recommendation) => {
+    if (seen.has(recommendation.member_id)) return false;
+    seen.add(recommendation.member_id);
+    return true;
+  });
 }
 
 function formatMemberHighlight(

@@ -187,12 +187,20 @@ describe("buildAssistantMessage", () => {
     expect(message).not.toContain("What is the repair timeline?");
   });
 
-  it("mentions up to two recommended members for a richer board", () => {
+  it("mentions up to two unique recommended members for a richer board", () => {
     const message = buildAssistantMessage(
       buildBoard([
         recommendation({ full_name: "Miguel Escobedo", need_label: "General Contractor" }),
-        recommendation({ full_name: "Sam Rivera", need_label: "HVAC" }),
-        recommendation({ full_name: "Dana Lee", need_label: "Roofing" }),
+        recommendation({
+          member_id: "member-2",
+          full_name: "Sam Rivera",
+          need_label: "HVAC",
+        }),
+        recommendation({
+          member_id: "member-3",
+          full_name: "Dana Lee",
+          need_label: "Roofing",
+        }),
       ]),
     );
 
@@ -202,11 +210,12 @@ describe("buildAssistantMessage", () => {
     expect(message).not.toContain("Dana Lee");
   });
 
-  it("handles a single recommended member with supporting options", () => {
+  it("uses singular wording for one recommended member with one supporting option", () => {
     const message = buildAssistantMessage(
       buildBoard([
         recommendation({ full_name: "Miguel Escobedo", need_label: "General Contractor" }),
         recommendation({
+          member_id: "member-2",
           full_name: "Casey Morgan",
           need_label: "Home Inspection",
           display_tier: "also_consider",
@@ -216,7 +225,82 @@ describe("buildAssistantMessage", () => {
     );
 
     expect(message).toBe(
+      "I found one strong place to start: Miguel Escobedo for general contractor. I also see one supporting option on the board.",
+    );
+  });
+
+  it("uses plural wording for one recommended member with multiple supporting options", () => {
+    const message = buildAssistantMessage(
+      buildBoard([
+        recommendation({ full_name: "Miguel Escobedo", need_label: "General Contractor" }),
+        recommendation({
+          member_id: "member-2",
+          full_name: "Casey Morgan",
+          need_label: "Home Inspection",
+          display_tier: "also_consider",
+          match_type: "adjacent",
+        }),
+        recommendation({
+          member_id: "member-3",
+          full_name: "Dana Lee",
+          need_label: "Roofing",
+          display_tier: "also_consider",
+          match_type: "adjacent",
+        }),
+      ]),
+    );
+
+    expect(message).toBe(
       "I found one strong place to start: Miguel Escobedo for general contractor. I also see a few supporting options on the board.",
+    );
+  });
+
+  it("mentions a member only once when they have multiple recommendation records", () => {
+    const message = buildAssistantMessage(
+      buildBoard([
+        recommendation({
+          member_id: "member-1",
+          full_name: "Miguel Escobedo",
+          need_label: "AI Automation",
+        }),
+        recommendation({
+          member_id: "member-1",
+          full_name: "Miguel Escobedo",
+          need_label: "Business Automation",
+        }),
+        recommendation({
+          member_id: "member-2",
+          full_name: "Sam Rivera",
+          need_label: "HVAC",
+        }),
+      ]),
+    );
+
+    expect(message).toBe(
+      "There are a few useful BXN members to consider. I would start with Miguel Escobedo for AI automation and Sam Rivera for HVAC.",
+    );
+    expect(message.match(/Miguel Escobedo/g)).toHaveLength(1);
+    expect(message).not.toContain("business automation");
+  });
+
+  it("keeps multiple unique recommended members in the one-or-two-person orientation", () => {
+    const message = buildAssistantMessage(
+      buildBoard([
+        recommendation({
+          member_id: "member-1",
+          full_name: "Miguel Escobedo",
+          need_label: "General Contractor",
+        }),
+        recommendation({
+          member_id: "member-2",
+          full_name: "Sam Rivera",
+          need_label: "HVAC",
+        }),
+      ]),
+    );
+
+    expect(message).toBe(
+      "There are a few useful BXN members to consider. I would start with Miguel Escobedo for general contractor and Sam Rivera for HVAC.",
     );
   });
 
