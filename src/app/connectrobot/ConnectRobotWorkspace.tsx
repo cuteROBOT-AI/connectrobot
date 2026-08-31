@@ -22,7 +22,6 @@ export function ConnectRobotWorkspace() {
     () => new Set(),
   );
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const highlightTimeoutRef = useRef<number | null>(null);
 
   const topSuggestion = useMemo(() => openQuestions[0] ?? null, [openQuestions]);
@@ -44,7 +43,6 @@ export function ConnectRobotWorkspace() {
 
     setMessages((current) => [...current, userMessage]);
     setIsSending(true);
-    setError(null);
 
     try {
       const activeSessionId = sessionId ?? (await createConnectRobotSession());
@@ -74,19 +72,13 @@ export function ConnectRobotWorkspace() {
           content: response.assistant_message,
         },
       ]);
-    } catch (caught) {
-      const message =
-        caught instanceof Error
-          ? caught.message
-          : "I’m having trouble reaching the recommendation service.";
-      setError(message);
+    } catch {
       setMessages((current) => [
         ...current,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content:
-            "I’m having trouble reaching the recommendation service. Please try again in a moment.",
+          content: getRecommendationUpdateFailureMessage(Boolean(board)),
         },
       ]);
     } finally {
@@ -107,7 +99,6 @@ export function ConnectRobotWorkspace() {
           suggestion={topSuggestion}
           isSending={isSending}
           hasRecommendationBoard={Boolean(board)}
-          error={error}
           onNewConversation={handleNewConversation}
           onSend={handleSend}
         />
@@ -122,4 +113,10 @@ export function ConnectRobotWorkspace() {
       </div>
     </main>
   );
+}
+
+export function getRecommendationUpdateFailureMessage(hasRecommendationBoard: boolean): string {
+  return hasRecommendationBoard
+    ? "I had trouble updating the referral plan. Your current recommendations are still here. Please try that again."
+    : "I had trouble building the referral plan. Please try that again.";
 }
