@@ -13,6 +13,19 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(component).not.toContain("Who can we help today?");
   });
 
+  it("offers a quiet reload-based new conversation action while idle only", () => {
+    const pane = readFileSync("src/app/connectrobot/ConversationPane.tsx", "utf8");
+    const workspace = readFileSync("src/app/connectrobot/ConnectRobotWorkspace.tsx", "utf8");
+
+    expect(pane).toContain("New conversation");
+    expect(pane).toContain("onNewConversation");
+    expect(pane).toContain("disabled={isSending}");
+    expect(workspace).toContain("function handleNewConversation()");
+    expect(workspace).toContain("if (isSending) return;");
+    expect(workspace).toContain("window.location.reload()");
+    expect(workspace).not.toMatch(/localStorage|sessionStorage/);
+  });
+
   it("uses the approved rotating thinking activity states", () => {
     expect(CONNECTROBOT_THINKING_ACTIVITIES).toEqual([
       {

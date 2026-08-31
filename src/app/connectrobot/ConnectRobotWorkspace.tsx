@@ -94,6 +94,11 @@ export function ConnectRobotWorkspace() {
     }
   }
 
+  function handleNewConversation() {
+    if (isSending) return;
+    window.location.reload();
+  }
+
   return (
     <main className="h-dvh overflow-hidden bg-[#f4f2ec] text-[#171b18]">
       <div className="grid h-full min-h-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] lg:overflow-hidden">
@@ -103,6 +108,7 @@ export function ConnectRobotWorkspace() {
           isSending={isSending}
           hasRecommendationBoard={Boolean(board)}
           error={error}
+          onNewConversation={handleNewConversation}
           onSend={handleSend}
         />
         <RecommendationBoard
