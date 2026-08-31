@@ -100,7 +100,7 @@ export function enforceCandidateGrounding(
             display_tier: displayTier,
             reason: sanitizeUserFacingText(
               recommendation.reason || candidate.why_matched,
-              "Grounded BXN referral candidate.",
+              fallbackRecommendationReason(candidate),
             ),
             evidence: sanitizeEvidence(recommendation.evidence),
             score: candidate.total_score,
@@ -152,7 +152,7 @@ function sanitizeUserFacingText(value: string | null | undefined, fallback: stri
 }
 
 function containsInternalScorerTerminology(value: string): boolean {
-  return /\b(?:scorer|score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|match[_\s-]*type|match[_\s-]*basis|display[_\s-]*tier|(?:exact|direct|adjacent)\s+match)\b/i.test(
+  return /\b(?:grounded\s+(?:bxn\s+)?(?:referral\s+)?candidates?|scorer|total[_\s-]*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|inferred[_\s-]*need|match[_\s-]*type|match[_\s-]*basis|display[_\s-]*tier|(?:scorer|internal|candidate|candidates|recommendation|recommendations|referral|member|members|need|needs|match|matches|score)\s+ranking|ranking\s+(?:logic|mechanics|algorithm|signal|signals|score|scores)|(?:exact|direct|adjacent)\s+match)\b/i.test(
     value,
   );
 }
@@ -200,7 +200,7 @@ export function buildDeterministicBoard(
     const group = groups.get(categoryKey) ?? {
       category_key: categoryKey,
       category_label: categoryLabel(categoryKey),
-      category_summary: `Grounded BXN candidates for ${categoryLabel(categoryKey).toLowerCase()} needs.`,
+      category_summary: `BXN members to consider for ${categoryLabel(categoryKey).toLowerCase()} needs.`,
       recommendations: [],
     };
 
@@ -220,7 +220,7 @@ export function buildDeterministicBoard(
       display_tier: displayTier,
       reason: sanitizeUserFacingText(
         candidate.why_matched || candidate.match_basis,
-        "Grounded BXN referral candidate.",
+        fallbackRecommendationReason(candidate),
       ),
       evidence: buildCandidateProfileEvidence(candidate),
       service_area_note: null,
@@ -237,8 +237,8 @@ export function buildDeterministicBoard(
     session_summary: context.scenario_summary,
     headline:
       categoryGroups.length > 0
-        ? "BXN referral candidates for this scenario"
-        : "No grounded BXN referral candidates yet",
+        ? "BXN referrals to consider"
+        : "No strong BXN matches yet",
     total_recommendations: candidates.length,
     category_groups: categoryGroups,
     open_questions: context.unknowns.slice(0, 3).map((unknown, index) => ({
@@ -252,7 +252,7 @@ export function buildDeterministicBoard(
 function buildEmptyBoard(context: ScenarioContext): RecommendationBoard {
   return {
     session_summary: context.scenario_summary,
-    headline: "No grounded BXN referral candidates yet",
+    headline: "No strong BXN matches yet",
     total_recommendations: 0,
     category_groups: [],
     open_questions: context.unknowns.slice(0, 3).map((unknown, index) => ({
@@ -261,6 +261,18 @@ function buildEmptyBoard(context: ScenarioContext): RecommendationBoard {
       priority: index === 0 ? "high" : "medium",
     })),
   };
+}
+
+function fallbackRecommendationReason(candidate: CandidateScorerResult): string {
+  const needLabel = formatNeedLabelForSentence(humanizeNeedKey(candidate.need_key));
+  return `This BXN member's services appear relevant for ${needLabel}.`;
+}
+
+function formatNeedLabelForSentence(needLabel: string): string {
+  return needLabel
+    .split(" ")
+    .map((word) => (/^[A-Z0-9&/-]{2,}$/.test(word) ? word : word.toLowerCase()))
+    .join(" ");
 }
 
 function candidateKey(memberId: string, needKey: string): string {

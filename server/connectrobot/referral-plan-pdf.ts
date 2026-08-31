@@ -76,7 +76,13 @@ export async function renderReferralPlanPdf(
     color: rgb(0.12, 0.44, 0.38),
   });
   y -= 10;
-  drawText(snapshot.headline, { size: 18, weight: "bold" });
+  drawText(
+    sanitizeBoardHeadline(
+      snapshot.headline,
+      snapshot.recommendation_board.total_recommendations,
+    ),
+    { size: 18, weight: "bold" },
+  );
   y -= 6;
   if (snapshot.scenario_summary) {
     drawText(snapshot.scenario_summary, { size: 10, color: rgb(0.36, 0.4, 0.36) });
@@ -91,8 +97,9 @@ export async function renderReferralPlanPdf(
       weight: "bold",
       color: rgb(0.12, 0.44, 0.38),
     });
-    if (group.category_summary) {
-      drawText(group.category_summary, { size: 9, color: rgb(0.42, 0.45, 0.42) });
+    const categorySummary = sanitizeDisplayText(group.category_summary);
+    if (categorySummary) {
+      drawText(categorySummary, { size: 9, color: rgb(0.42, 0.45, 0.42) });
     }
     y -= 4;
 
@@ -112,7 +119,10 @@ export async function renderReferralPlanPdf(
         color: rgb(0.48, 0.4, 0.24),
         indent: 10,
       });
-      drawText(recommendation.reason, { size: 9, indent: 10 });
+      drawText(sanitizeRecommendationReason(recommendation.reason), {
+        size: 9,
+        indent: 10,
+      });
       if (recommendation.phone) {
         drawText(`Phone: ${recommendation.phone}`, { size: 9, indent: 10 });
       }
@@ -190,3 +200,22 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): 
   if (line) lines.push(line);
   return lines.length > 0 ? lines : [""];
 }
+
+function sanitizeBoardHeadline(headline: string, totalRecommendations: number): string {
+  const sanitized = sanitizeDisplayText(headline);
+  if (sanitized) return sanitized;
+  return totalRecommendations > 0 ? "BXN referrals to consider" : "No strong BXN matches yet";
+}
+
+function sanitizeRecommendationReason(reason: string): string {
+  const sanitized = sanitizeDisplayText(reason);
+  return sanitized || "This BXN member's services appear relevant to this need.";
+}
+
+function sanitizeDisplayText(value: string | null | undefined): string {
+  if (!value || INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN.test(value)) return "";
+  return value.trim();
+}
+
+const INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN =
+  /\b(?:grounded\s+(?:bxn\s+)?(?:referral\s+)?candidates?|scorer|total[_\s-]*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|inferred[_\s-]*need|match[_\s-]*basis|match[_\s-]*type|display[_\s-]*tier|(?:scorer|internal|candidate|candidates|recommendation|recommendations|referral|member|members|need|needs|match|matches|score)\s+ranking|ranking\s+(?:logic|mechanics|algorithm|signal|signals|score|scores)|(?:exact|direct|adjacent)\s+match)\b/i;

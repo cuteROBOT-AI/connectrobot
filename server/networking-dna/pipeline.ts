@@ -3,6 +3,7 @@ import {
   ScenarioContextSchema,
   type ConversationMessage,
   type NetworkingDnaResponse,
+  type RecommendationBoard,
   type ScenarioContext,
 } from "./schemas.js";
 import type { FinalReasoner } from "./final-reasoner.js";
@@ -129,25 +130,80 @@ function parsePreviousContext(value: unknown): ScenarioContext | null {
   return parsed.success ? parsed.data : null;
 }
 
-export function buildAssistantMessage(
-  board: Pick<
-    NetworkingDnaResponse["recommendation_board"],
-    "headline" | "total_recommendations" | "open_questions"
-  >,
-): string {
-  const countText =
-    board.total_recommendations === 1
-      ? "I found 1 grounded BXN referral candidate."
-      : `I found ${board.total_recommendations} grounded BXN referral candidates.`;
+export function buildAssistantMessage(board: RecommendationBoard): string {
+  const recommendations = board.category_groups.flatMap((group) => group.recommendations);
+  const recommended = uniqueByMemberId(
+    recommendations.filter(
+      (recommendation) => recommendation.display_tier === "recommended",
+    ),
+  );
+  const recommendedMemberIds = new Set(
+    recommended.map((recommendation) => recommendation.member_id),
+  );
+  const supporting = uniqueByMemberId(
+    recommendations.filter(
+      (recommendation) =>
+        recommendation.display_tier === "also_consider" &&
+        !recommendedMemberIds.has(recommendation.member_id),
+    ),
+  );
 
-  if (board.open_questions.length === 0) {
-    return `${board.headline} ${countText}`;
+  if (recommendations.length === 0) {
+    return "I do not have a strong BXN referral plan yet. Share a little more about what kind of help would be most useful, and I will keep narrowing it down.";
   }
 
-  const questions = board.open_questions
-    .slice(0, 3)
-    .map((openQuestion) => openQuestion.question)
-    .join(" ");
+  if (recommended.length > 0) {
+    const memberText = formatMemberHighlights(recommended.slice(0, 2));
 
-  return `${board.headline} ${countText} A few details could sharpen the board: ${questions}`;
+    if (recommended.length === 1 && supporting.length === 0) {
+      return `I found one useful BXN member to consider: ${memberText}.`;
+    }
+
+    if (recommended.length === 1) {
+      const supportingText =
+        supporting.length === 1 ? "one supporting option" : "a few supporting options";
+
+      return `I found one strong place to start: ${memberText}. I also see ${supportingText} on the board.`;
+    }
+
+    return `There are a few useful BXN members to consider. I would start with ${memberText}.`;
+  }
+
+  const memberText = formatMemberHighlights(supporting.slice(0, 2));
+  const countText =
+    supporting.length === 1 ? "one supporting BXN option" : "a few supporting BXN options";
+
+  return `I found ${countText} to consider${memberText ? `, including ${memberText}` : ""}. These may be useful, but I would treat them as secondary until the situation is clearer.`;
+}
+
+function formatMemberHighlights(
+  recommendations: RecommendationBoard["category_groups"][number]["recommendations"],
+): string {
+  return recommendations.map(formatMemberHighlight).join(" and ");
+}
+
+function uniqueByMemberId(
+  recommendations: RecommendationBoard["category_groups"][number]["recommendations"],
+): RecommendationBoard["category_groups"][number]["recommendations"] {
+  const seen = new Set<string>();
+
+  return recommendations.filter((recommendation) => {
+    if (seen.has(recommendation.member_id)) return false;
+    seen.add(recommendation.member_id);
+    return true;
+  });
+}
+
+function formatMemberHighlight(
+  recommendation: RecommendationBoard["category_groups"][number]["recommendations"][number],
+): string {
+  return `${recommendation.full_name} for ${formatNeedLabel(recommendation.need_label)}`;
+}
+
+function formatNeedLabel(needLabel: string): string {
+  if (/^[A-Z0-9\s&/-]+$/.test(needLabel)) return needLabel;
+  return needLabel
+    .split(" ")
+    .map((word) => (/^[A-Z0-9&/-]{2,}$/.test(word) ? word : word.toLowerCase()))
+    .join(" ");
 }

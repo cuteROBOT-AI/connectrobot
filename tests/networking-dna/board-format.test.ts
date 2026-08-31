@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { formatRecommendationBoardAsText } from "../../src/app/connectrobot/format-board.js";
+import {
+  formatRecommendationBoardAsText,
+  sanitizeRecommendationText,
+} from "../../src/app/connectrobot/format-board.js";
 import type { RecommendationBoardData } from "../../src/app/connectrobot/types.js";
 
 describe("ConnectROBOT recommendation board copy formatting", () => {
@@ -65,6 +68,67 @@ describe("ConnectROBOT recommendation board copy formatting", () => {
     expect(text.match(/Recommended: Nancy Dominguez/g)).toHaveLength(1);
     expect(text).not.toContain("96");
     expect(text).not.toMatch(/score|need_fit_score|Scorer/i);
+  });
+
+  it("omits internal recommendation terminology from copied board text", () => {
+    const board: RecommendationBoardData = {
+      session_summary: "A family bought a home that needs work.",
+      headline: "No grounded BXN referral candidates yet",
+      total_recommendations: 1,
+      category_groups: [
+        {
+          category_key: "home_property",
+          category_label: "Home & Property",
+          category_summary: "Grounded BXN candidates for home & property needs.",
+          recommendations: [
+            {
+              member_id: "member-1",
+              full_name: "Nancy Dominguez",
+              business_name: "Seven-S Contractor Services",
+              phone: null,
+              email: null,
+              need_key: "general_contractor",
+              need_label: "General Contractor",
+              display_tier: "recommended",
+              reason: "Grounded BXN referral candidate.",
+              evidence: [
+                "Relevant contractor profile.",
+                "Match basis: home needs work.",
+                "Inferred need ranking moved this member up.",
+              ],
+              service_area_note: "Serves the Austin area.",
+              network_note: null,
+              score: 96,
+            },
+          ],
+        },
+      ],
+      open_questions: [],
+    };
+
+    const text = formatRecommendationBoardAsText(board);
+
+    expect(text).toContain("BXN referrals to consider");
+    expect(text).not.toMatch(
+      /grounded BXN referral candidate|grounded BXN candidates|match basis|inferred need|ranking/i,
+    );
+    expect(text).toContain("- Relevant contractor profile.");
+    expect(text).toContain("Service area: Serves the Austin area.");
+  });
+
+  it("allows legitimate natural-language uses of score and candidate", () => {
+    expect(sanitizeRecommendationText("Improving your credit score can help with financing.")).toBe(
+      "Improving your credit score can help with financing.",
+    );
+    expect(sanitizeRecommendationText("They may be a good candidate for refinancing.")).toBe(
+      "They may be a good candidate for refinancing.",
+    );
+  });
+
+  it("removes implementation-specific recommendation terminology", () => {
+    expect(sanitizeRecommendationText("Grounded BXN referral candidate.")).toBe("");
+    expect(sanitizeRecommendationText("Matched through need_fit_score.")).toBe("");
+    expect(sanitizeRecommendationText("Adjacent match based on scorer ranking.")).toBe("");
   });
 
   it("returns a useful empty-board copy state", () => {

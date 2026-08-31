@@ -20,6 +20,10 @@ describe("Final Reasoner grounding", () => {
   it("builds a board from scorer candidates without changing scorer order", () => {
     const board = buildDeterministicBoard(context, candidates);
 
+    expect(board.headline).toBe("BXN referrals to consider");
+    expect(board.category_groups[0]?.category_summary).toBe(
+      "BXN members to consider for home & property needs.",
+    );
     expect(board.total_recommendations).toBe(candidates.length);
     expect(board.category_groups[0]?.recommendations.map((item) => item.full_name)).toEqual([
       "Nancy Dominguez",
@@ -158,15 +162,70 @@ describe("Final Reasoner grounding", () => {
     const recommendation = grounded.category_groups[0]?.recommendations[0];
 
     expect(recommendation?.score).toBe(candidate.total_score);
-    expect(recommendation?.reason).toBe("Grounded BXN referral candidate.");
+    expect(recommendation?.reason).toBe(
+      "This BXN member's services appear relevant for general contractor.",
+    );
     expect(recommendation?.evidence).toEqual([
       "Services include home renovation and remodeling",
       "Serves Austin-area homeowners",
     ]);
     expect(JSON.stringify(recommendation?.evidence)).not.toMatch(
-      /Scorer|score|need_fit_score|context_fit_score|service_area_score|exact match/i,
+      /grounded|candidate|Scorer|score|need_fit_score|context_fit_score|service_area_score|exact match|match basis|inferred need|ranking|match type/i,
     );
     expect(grounded.open_questions).toEqual([]);
+  });
+
+  it("preserves natural uses of score and candidate in recommendation prose", () => {
+    const candidate = candidates[0];
+    const board = RecommendationBoardSchema.parse({
+      session_summary: context.scenario_summary,
+      headline: "Draft",
+      total_recommendations: 1,
+      category_groups: [
+        {
+          category_key: "home_property",
+          category_label: "Home & Property",
+          category_summary: "Draft",
+          recommendations: [
+            {
+              member_id: candidate.member_id,
+              full_name: candidate.full_name,
+              business_name: candidate.business_name,
+              need_key: candidate.need_key,
+              need_label: "Financial Planning",
+              match_type: "exact",
+              display_tier: "recommended",
+              reason: "Improving your credit score can help with financing.",
+              evidence: ["They may be a good candidate for refinancing."],
+              service_area_note: null,
+              network_note: null,
+              score: 1,
+            },
+          ],
+        },
+      ],
+      open_questions: [],
+    });
+
+    const grounded = enforceCandidateGrounding(board, context, candidates);
+    const recommendation = grounded.category_groups[0]?.recommendations[0];
+
+    expect(recommendation?.reason).toBe(
+      "Improving your credit score can help with financing",
+    );
+    expect(recommendation?.evidence).toEqual([
+      "They may be a good candidate for refinancing",
+    ]);
+  });
+
+  it("uses natural zero-result board copy", () => {
+    const board = buildDeterministicBoard(context, []);
+
+    expect(board.headline).toBe("No strong BXN matches yet");
+    expect(board.total_recommendations).toBe(0);
+    expect(JSON.stringify(board)).not.toMatch(
+      /No grounded BXN referral candidates yet|Grounded BXN referral candidate/i,
+    );
   });
 
   it("requests low-latency Responses API behavior while preserving structured output", async () => {

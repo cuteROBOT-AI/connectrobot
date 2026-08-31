@@ -4,11 +4,27 @@ import {
   type PresentedRecommendation,
 } from "./presentation";
 
-const INTERNAL_SCORER_PATTERN =
-  /\b(?:scorer|total score|score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score)\b/i;
+const INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN =
+  /\b(?:grounded\s+(?:bxn\s+)?(?:referral\s+)?candidates?|scorer|total[_\s-]*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|inferred[_\s-]*need|match[_\s-]*basis|match[_\s-]*type|display[_\s-]*tier|(?:scorer|internal|candidate|candidates|recommendation|recommendations|referral|member|members|need|needs|match|matches|score)\s+ranking|ranking\s+(?:logic|mechanics|algorithm|signal|signals|score|scores)|(?:exact|direct|adjacent)\s+match)\b/i;
+
+export function sanitizeBoardHeadline(
+  headline: string | null | undefined,
+  totalRecommendations: number,
+): string {
+  if (headline && !INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN.test(headline)) {
+    return headline.trim();
+  }
+
+  return totalRecommendations > 0 ? "BXN referrals to consider" : "No strong BXN matches yet";
+}
+
+export function sanitizeCategorySummary(value: string | null | undefined): string {
+  if (!value || INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN.test(value)) return "";
+  return value.trim();
+}
 
 export function sanitizeRecommendationText(value: string | null | undefined): string {
-  if (!value || INTERNAL_SCORER_PATTERN.test(value)) return "";
+  if (!value || INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN.test(value)) return "";
   return value.trim();
 }
 
@@ -29,7 +45,7 @@ export function formatRecommendationBoardAsText(
   const lines = [
     "ConnectROBOT recommendation board",
     "",
-    board.headline,
+    sanitizeBoardHeadline(board.headline, board.total_recommendations),
     board.session_summary ? `Scenario: ${board.session_summary}` : "",
     savedPlanUrl ? `Saved plan: ${savedPlanUrl}` : "",
   ].filter(Boolean);
@@ -38,7 +54,8 @@ export function formatRecommendationBoardAsText(
     if (group.recommendations.length === 0) continue;
 
     lines.push("", group.category_label);
-    if (group.category_summary) lines.push(group.category_summary);
+    const categorySummary = sanitizeCategorySummary(group.category_summary);
+    if (categorySummary) lines.push(categorySummary);
 
     for (const recommendation of group.recommendations) {
       const reason = sanitizeRecommendationText(recommendation.reason);
