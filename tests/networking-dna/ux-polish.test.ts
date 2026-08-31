@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
+import { TEXT_REFERRAL_PLAN_FAILURE_MESSAGE } from "../../src/app/connectrobot/RecommendationBoard.js";
 import { CONNECTROBOT_THINKING_ACTIVITIES } from "../../src/app/connectrobot/thinking.js";
 
 describe("ConnectROBOT v0.1 UX polish", () => {
@@ -141,6 +142,20 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     expect(modalSource).toContain("Already sent");
     expect(modalSource).toContain("You can send this again after you make changes.");
     expect(modalSource).toContain("OK");
+  });
+
+  it("uses generic retryable copy for text-send failures instead of raw API errors", () => {
+    const boardSource = readFileSync("src/app/connectrobot/RecommendationBoard.tsx", "utf8");
+    const textSendCatch = boardSource.slice(
+      boardSource.indexOf("} catch (error) {", boardSource.indexOf("async function textReferralPlan")),
+      boardSource.indexOf("}\n  }\n\n  return", boardSource.indexOf("async function textReferralPlan")),
+    );
+
+    expect(TEXT_REFERRAL_PLAN_FAILURE_MESSAGE).toBe(
+      "I couldn't send the text. Please check the number and try again.",
+    );
+    expect(textSendCatch).toContain("setTextError(TEXT_REFERRAL_PLAN_FAILURE_MESSAGE)");
+    expect(textSendCatch).not.toContain("error.message");
   });
 
   it("discloses that opted-in recommended members may receive referral contact context", () => {
