@@ -4,7 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArrowUp, CircleDot, Loader2 } from "lucide-react";
+import { ArrowUp, CircleDot, Loader2, RotateCcw } from "lucide-react";
 
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
@@ -17,6 +17,7 @@ interface ConversationPaneProps {
   isSending: boolean;
   hasRecommendationBoard: boolean;
   error: string | null;
+  onNewConversation: () => void;
   onSend: (message: string) => Promise<void>;
 }
 
@@ -26,6 +27,7 @@ export function ConversationPane({
   isSending,
   hasRecommendationBoard,
   error,
+  onNewConversation,
   onSend,
 }: ConversationPaneProps) {
   const [draft, setDraft] = useState("");
@@ -47,10 +49,32 @@ export function ConversationPane({
   return (
     <section className="flex min-h-[560px] flex-col bg-[#f4f2ec] max-lg:min-h-[70dvh] lg:h-full lg:min-h-0">
       <div className="shrink-0 border-b border-[#ddd8ce] px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#787065]">
-          BXN ConnectROBOT
-        </p>
-        <h1 className="text-2xl font-semibold text-[#171b18]">What’s going on?</h1>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#787065]">
+              BXN ConnectROBOT
+            </p>
+            <h1 className="text-2xl font-semibold text-[#171b18]">
+              What’s going on?
+            </h1>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onNewConversation}
+            disabled={isSending}
+            className="mt-0.5 border-[#d7d0c3] bg-[#f7f5ef] text-xs font-semibold text-[#5f675f] shadow-none transition-colors hover:border-[#c8b678] hover:bg-[#fbf7eb] hover:text-[#26302a]"
+            title={
+              isSending
+                ? "Wait for the current message to finish"
+                : "Start a new conversation"
+            }
+          >
+            <RotateCcw className="size-3.5" />
+            New conversation
+          </Button>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
