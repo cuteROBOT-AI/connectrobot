@@ -5,7 +5,7 @@ import {
 } from "./presentation";
 
 const INTERNAL_RECOMMENDATION_TERMINOLOGY_PATTERN =
-  /\b(?:grounded|candidate|candidates|scorer|total score|score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|match\s+basis|inferred\s+need|ranking|match\s+type)\b/i;
+  /\b(?:grounded\s+(?:bxn\s+)?(?:referral\s+)?candidates?|scorer|total[_\s-]*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|inferred[_\s-]*need|match[_\s-]*basis|match[_\s-]*type|display[_\s-]*tier|(?:scorer|internal|candidate|candidates|recommendation|recommendations|referral|member|members|need|needs|match|matches|score)\s+ranking|ranking\s+(?:logic|mechanics|algorithm|signal|signals|score|scores)|(?:exact|direct|adjacent)\s+match)\b/i;
 
 export function sanitizeBoardHeadline(
   headline: string | null | undefined,

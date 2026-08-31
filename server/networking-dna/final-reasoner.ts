@@ -152,7 +152,7 @@ function sanitizeUserFacingText(value: string | null | undefined, fallback: stri
 }
 
 function containsInternalScorerTerminology(value: string): boolean {
-  return /\b(?:grounded|candidate|candidates|scorer|score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|inferred\s+need|match[_\s-]*type|match[_\s-]*basis|display[_\s-]*tier|ranking|(?:exact|direct|adjacent)\s+match)\b/i.test(
+  return /\b(?:grounded\s+(?:bxn\s+)?(?:referral\s+)?candidates?|scorer|total[_\s-]*score|need[_\s-]*fit[_\s-]*score|context[_\s-]*fit[_\s-]*score|service[_\s-]*area[_\s-]*score|referral[_\s-]*network[_\s-]*score|inference[_\s-]*confidence|inferred[_\s-]*need|match[_\s-]*type|match[_\s-]*basis|display[_\s-]*tier|(?:scorer|internal|candidate|candidates|recommendation|recommendations|referral|member|members|need|needs|match|matches|score)\s+ranking|ranking\s+(?:logic|mechanics|algorithm|signal|signals|score|scores)|(?:exact|direct|adjacent)\s+match)\b/i.test(
     value,
   );
 }

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { formatRecommendationBoardAsText } from "../../src/app/connectrobot/format-board.js";
+import {
+  formatRecommendationBoardAsText,
+  sanitizeRecommendationText,
+} from "../../src/app/connectrobot/format-board.js";
 import type { RecommendationBoardData } from "../../src/app/connectrobot/types.js";
 
 describe("ConnectROBOT recommendation board copy formatting", () => {
@@ -106,9 +109,26 @@ describe("ConnectROBOT recommendation board copy formatting", () => {
     const text = formatRecommendationBoardAsText(board);
 
     expect(text).toContain("BXN referrals to consider");
-    expect(text).not.toMatch(/grounded|candidate|match basis|inferred need|ranking/i);
+    expect(text).not.toMatch(
+      /grounded BXN referral candidate|grounded BXN candidates|match basis|inferred need|ranking/i,
+    );
     expect(text).toContain("- Relevant contractor profile.");
     expect(text).toContain("Service area: Serves the Austin area.");
+  });
+
+  it("allows legitimate natural-language uses of score and candidate", () => {
+    expect(sanitizeRecommendationText("Improving your credit score can help with financing.")).toBe(
+      "Improving your credit score can help with financing.",
+    );
+    expect(sanitizeRecommendationText("They may be a good candidate for refinancing.")).toBe(
+      "They may be a good candidate for refinancing.",
+    );
+  });
+
+  it("removes implementation-specific recommendation terminology", () => {
+    expect(sanitizeRecommendationText("Grounded BXN referral candidate.")).toBe("");
+    expect(sanitizeRecommendationText("Matched through need_fit_score.")).toBe("");
+    expect(sanitizeRecommendationText("Adjacent match based on scorer ranking.")).toBe("");
   });
 
   it("returns a useful empty-board copy state", () => {

@@ -175,6 +175,49 @@ describe("Final Reasoner grounding", () => {
     expect(grounded.open_questions).toEqual([]);
   });
 
+  it("preserves natural uses of score and candidate in recommendation prose", () => {
+    const candidate = candidates[0];
+    const board = RecommendationBoardSchema.parse({
+      session_summary: context.scenario_summary,
+      headline: "Draft",
+      total_recommendations: 1,
+      category_groups: [
+        {
+          category_key: "home_property",
+          category_label: "Home & Property",
+          category_summary: "Draft",
+          recommendations: [
+            {
+              member_id: candidate.member_id,
+              full_name: candidate.full_name,
+              business_name: candidate.business_name,
+              need_key: candidate.need_key,
+              need_label: "Financial Planning",
+              match_type: "exact",
+              display_tier: "recommended",
+              reason: "Improving your credit score can help with financing.",
+              evidence: ["They may be a good candidate for refinancing."],
+              service_area_note: null,
+              network_note: null,
+              score: 1,
+            },
+          ],
+        },
+      ],
+      open_questions: [],
+    });
+
+    const grounded = enforceCandidateGrounding(board, context, candidates);
+    const recommendation = grounded.category_groups[0]?.recommendations[0];
+
+    expect(recommendation?.reason).toBe(
+      "Improving your credit score can help with financing",
+    );
+    expect(recommendation?.evidence).toEqual([
+      "They may be a good candidate for refinancing",
+    ]);
+  });
+
   it("uses natural zero-result board copy", () => {
     const board = buildDeterministicBoard(context, []);
 
