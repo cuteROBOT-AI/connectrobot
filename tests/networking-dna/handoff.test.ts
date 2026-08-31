@@ -122,6 +122,16 @@ describe("ConnectROBOT handoff helpers", () => {
     expect(uri).toBe("https://bxnmembers.com/user/nancy.dominguez/");
   });
 
+  it("sanitizes referral-plan PDF presentation strings", () => {
+    const source = readFileSync("server/connectrobot/referral-plan-pdf.ts", "utf8");
+
+    expect(source).toContain("sanitizeBoardHeadline");
+    expect(source).toContain("sanitizeRecommendationReason");
+    expect(source).toContain("No strong BXN matches yet");
+    expect(source).not.toContain("No grounded BXN referral candidates yet");
+    expect(source).not.toContain("Grounded BXN referral candidate.");
+  });
+
   it("sends Telnyx SMS without exposing provider credentials in the response", async () => {
     const fetchImpl = vi.fn(async () => new Response("{}", { status: 200 }));
     const service = new TelnyxSmsDeliveryService(

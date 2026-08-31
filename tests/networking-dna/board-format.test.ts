@@ -67,6 +67,50 @@ describe("ConnectROBOT recommendation board copy formatting", () => {
     expect(text).not.toMatch(/score|need_fit_score|Scorer/i);
   });
 
+  it("omits internal recommendation terminology from copied board text", () => {
+    const board: RecommendationBoardData = {
+      session_summary: "A family bought a home that needs work.",
+      headline: "No grounded BXN referral candidates yet",
+      total_recommendations: 1,
+      category_groups: [
+        {
+          category_key: "home_property",
+          category_label: "Home & Property",
+          category_summary: "Grounded BXN candidates for home & property needs.",
+          recommendations: [
+            {
+              member_id: "member-1",
+              full_name: "Nancy Dominguez",
+              business_name: "Seven-S Contractor Services",
+              phone: null,
+              email: null,
+              need_key: "general_contractor",
+              need_label: "General Contractor",
+              display_tier: "recommended",
+              reason: "Grounded BXN referral candidate.",
+              evidence: [
+                "Relevant contractor profile.",
+                "Match basis: home needs work.",
+                "Inferred need ranking moved this member up.",
+              ],
+              service_area_note: "Serves the Austin area.",
+              network_note: null,
+              score: 96,
+            },
+          ],
+        },
+      ],
+      open_questions: [],
+    };
+
+    const text = formatRecommendationBoardAsText(board);
+
+    expect(text).toContain("BXN referrals to consider");
+    expect(text).not.toMatch(/grounded|candidate|match basis|inferred need|ranking/i);
+    expect(text).toContain("- Relevant contractor profile.");
+    expect(text).toContain("Service area: Serves the Austin area.");
+  });
+
   it("returns a useful empty-board copy state", () => {
     expect(formatRecommendationBoardAsText(null)).toBe(
       "ConnectROBOT recommendation board\n\nNo recommendations yet.",

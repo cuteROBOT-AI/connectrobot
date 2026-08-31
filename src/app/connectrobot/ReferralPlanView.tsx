@@ -7,7 +7,11 @@ import {
   getProfileHref,
   type PresentedRecommendation,
 } from "./presentation";
-import { sanitizeRecommendationText } from "./format-board";
+import {
+  sanitizeBoardHeadline,
+  sanitizeCategorySummary,
+  sanitizeRecommendationText,
+} from "./format-board";
 import type { ReferralPlanSnapshotResponse } from "./types";
 
 interface ReferralPlanViewProps {
@@ -77,7 +81,10 @@ export function ReferralPlanView({ token }: ReferralPlanViewProps) {
             BXN ConnectROBOT Referral Plan
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-[#19201c]">
-            {plan.snapshot.headline}
+            {sanitizeBoardHeadline(
+              plan.snapshot.headline,
+              plan.snapshot.recommendation_board.total_recommendations,
+            )}
           </h1>
           {plan.snapshot.scenario_summary ? (
             <p className="mt-3 max-w-3xl text-sm leading-6 text-[#59625b]">
@@ -93,9 +100,11 @@ export function ReferralPlanView({ token }: ReferralPlanViewProps) {
                 <h2 className="text-base font-semibold text-[#202820]">
                   {group.category_label}
                 </h2>
-                <p className="text-sm leading-5 text-[#69736c]">
-                  {group.category_summary}
-                </p>
+                {sanitizeCategorySummary(group.category_summary) ? (
+                  <p className="text-sm leading-5 text-[#69736c]">
+                    {sanitizeCategorySummary(group.category_summary)}
+                  </p>
+                ) : null}
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {group.recommendations.map((recommendation) => (

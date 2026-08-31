@@ -20,6 +20,10 @@ describe("Final Reasoner grounding", () => {
   it("builds a board from scorer candidates without changing scorer order", () => {
     const board = buildDeterministicBoard(context, candidates);
 
+    expect(board.headline).toBe("BXN referrals to consider");
+    expect(board.category_groups[0]?.category_summary).toBe(
+      "BXN members to consider for home & property needs.",
+    );
     expect(board.total_recommendations).toBe(candidates.length);
     expect(board.category_groups[0]?.recommendations.map((item) => item.full_name)).toEqual([
       "Nancy Dominguez",
@@ -158,15 +162,27 @@ describe("Final Reasoner grounding", () => {
     const recommendation = grounded.category_groups[0]?.recommendations[0];
 
     expect(recommendation?.score).toBe(candidate.total_score);
-    expect(recommendation?.reason).toBe("Grounded BXN referral candidate.");
+    expect(recommendation?.reason).toBe(
+      "This BXN member's services appear relevant for general contractor.",
+    );
     expect(recommendation?.evidence).toEqual([
       "Services include home renovation and remodeling",
       "Serves Austin-area homeowners",
     ]);
     expect(JSON.stringify(recommendation?.evidence)).not.toMatch(
-      /Scorer|score|need_fit_score|context_fit_score|service_area_score|exact match/i,
+      /grounded|candidate|Scorer|score|need_fit_score|context_fit_score|service_area_score|exact match|match basis|inferred need|ranking|match type/i,
     );
     expect(grounded.open_questions).toEqual([]);
+  });
+
+  it("uses natural zero-result board copy", () => {
+    const board = buildDeterministicBoard(context, []);
+
+    expect(board.headline).toBe("No strong BXN matches yet");
+    expect(board.total_recommendations).toBe(0);
+    expect(JSON.stringify(board)).not.toMatch(
+      /No grounded BXN referral candidates yet|Grounded BXN referral candidate/i,
+    );
   });
 
   it("requests low-latency Responses API behavior while preserving structured output", async () => {

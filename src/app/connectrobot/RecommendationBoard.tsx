@@ -19,6 +19,8 @@ import {
 } from "./api";
 import {
   formatRecommendationBoardAsText,
+  sanitizeBoardHeadline,
+  sanitizeCategorySummary,
   sanitizeRecommendationEvidence,
   sanitizeRecommendationText,
 } from "./format-board";
@@ -156,7 +158,9 @@ export function RecommendationBoard({
               BXN Recommendation Board
             </p>
             <h2 className="truncate text-lg font-semibold text-[#19201c]">
-              {board?.headline ?? "Your recommendations will build here."}
+              {board
+                ? sanitizeBoardHeadline(board.headline, board.total_recommendations)
+                : "Your recommendations will build here."}
             </h2>
           </div>
           {isUpdating ? (
@@ -180,22 +184,27 @@ export function RecommendationBoard({
           </div>
         ) : (
           <div className="space-y-6">
-            {groups.map((group) => (
-              <section key={group.category_key} className="space-y-2">
-                <div className="flex items-end justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#202820]">
-                      {group.category_label}
-                    </h3>
-                    <p className="text-xs leading-5 text-[#717970]">
-                      {group.category_summary}
-                    </p>
+            {groups.map((group) => {
+              const categorySummary = sanitizeCategorySummary(group.category_summary);
+
+              return (
+                <section key={group.category_key} className="space-y-2">
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#202820]">
+                        {group.category_label}
+                      </h3>
+                      {categorySummary ? (
+                        <p className="text-xs leading-5 text-[#717970]">
+                          {categorySummary}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="text-xs font-medium text-[#8a918a]">
+                      {group.recommendations.length}
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-[#8a918a]">
-                    {group.recommendations.length}
-                  </span>
-                </div>
-                <div className="space-y-2">
+                  <div className="space-y-2">
                   {group.tiers.recommended.map((recommendation) => (
                     <RecommendationCard
                       key={recommendation.member_id}
@@ -242,7 +251,8 @@ export function RecommendationBoard({
                   ) : null}
                 </div>
               </section>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
