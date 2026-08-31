@@ -16,7 +16,6 @@ interface ConversationPaneProps {
   suggestion: OpenQuestion | null;
   isSending: boolean;
   hasRecommendationBoard: boolean;
-  error: string | null;
   onNewConversation: () => void;
   onSend: (message: string) => Promise<void>;
 }
@@ -26,7 +25,6 @@ export function ConversationPane({
   suggestion,
   isSending,
   hasRecommendationBoard,
-  error,
   onNewConversation,
   onSend,
 }: ConversationPaneProps) {
@@ -114,12 +112,6 @@ export function ConversationPane({
                 This would help me narrow it down
               </p>
               <p className="mt-1 text-sm leading-5 text-[#243049]">{suggestion.question}</p>
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="mb-3 rounded-md border border-[#edd3d0] bg-[#fff6f4] px-4 py-3 text-sm text-[#8b312a]">
-              {error}
             </div>
           ) : null}
 
