@@ -29,6 +29,8 @@ export interface SnapshotResult {
   reused: boolean;
 }
 
+export const STALE_PENDING_NOTIFICATION_RETRY_AFTER_MS = 2 * 60 * 1000;
+
 export class SupabaseReferralPlanRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
@@ -109,7 +111,7 @@ export class SupabaseReferralPlanRepository {
     const { data, error } = await this.supabase
       .from("networking_referral_notifications")
       .insert(payload)
-      .select("id,status")
+      .select("id,status,updated_at")
       .single();
 
     if (isUniqueViolation(error)) {
@@ -122,6 +124,15 @@ export class SupabaseReferralPlanRepository {
       if (existing.status === "failed") {
         await this.resetNotificationForRetry(existing.id, input.destination_phone);
         return { id: existing.id, shouldSend: true, status: "pending" };
+      }
+
+      if (existing.status === "pending" && isStalePendingNotification(existing.updated_at)) {
+        const reset = await this.resetStalePendingNotificationForRetry(
+          existing.id,
+          input.destination_phone,
+          stalePendingNotificationCutoffIso(),
+        );
+        if (reset) return { id: existing.id, shouldSend: true, status: "pending" };
       }
 
       return { id: existing.id, shouldSend: false, status: existing.status };
@@ -288,10 +299,10 @@ export class SupabaseReferralPlanRepository {
     snapshot_id: string;
     notification_type: string;
     recipient_key: string;
-  }): Promise<{ id: string; status: "pending" | "sent" | "failed" }> {
+  }): Promise<{ id: string; status: "pending" | "sent" | "failed"; updated_at: string }> {
     const { data, error } = await this.supabase
       .from("networking_referral_notifications")
-      .select("id,status")
+      .select("id,status,updated_at")
       .eq("snapshot_id", input.snapshot_id)
       .eq("notification_type", input.notification_type)
       .eq("recipient_key", input.recipient_key)
@@ -299,6 +310,29 @@ export class SupabaseReferralPlanRepository {
 
     assertNoSupabaseError(error, "Fetch existing referral notification");
     return NotificationReservationRowSchema.parse(data);
+  }
+
+  private async resetStalePendingNotificationForRetry(
+    notificationId: string,
+    destinationPhone: string,
+    staleBeforeIso: string,
+  ): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from("networking_referral_notifications")
+      .update({
+        status: "pending",
+        destination_phone: destinationPhone,
+        error_message: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", notificationId)
+      .eq("status", "pending")
+      .lt("updated_at", staleBeforeIso)
+      .select("id")
+      .maybeSingle();
+
+    assertNoSupabaseError(error, "Reset stale referral notification for retry");
+    return Boolean(data);
   }
 
   private async resetNotificationForRetry(
@@ -347,6 +381,19 @@ export function createPublicToken(): string {
   return randomBytes(24).toString("base64url");
 }
 
+export function isStalePendingNotification(
+  updatedAt: string,
+  now = new Date(),
+): boolean {
+  const updatedAtMs = Date.parse(updatedAt);
+  if (!Number.isFinite(updatedAtMs)) return false;
+  return now.getTime() - updatedAtMs >= STALE_PENDING_NOTIFICATION_RETRY_AFTER_MS;
+}
+
+function stalePendingNotificationCutoffIso(): string {
+  return new Date(Date.now() - STALE_PENDING_NOTIFICATION_RETRY_AFTER_MS).toISOString();
+}
+
 function assertNoSupabaseError(error: { message: string } | null, operation: string): void {
   if (error) {
     throw new Error(`${operation} failed: ${error.message}`);
@@ -387,20 +434,23 @@ const ContactIdRowSchema = {
 };
 
 const NotificationReservationRowSchema = {
-  parse(value: unknown): { id: string; status: "pending" | "sent" | "failed" } {
+  parse(value: unknown): { id: string; status: "pending" | "sent" | "failed"; updated_at: string } {
     if (!value || typeof value !== "object") {
       throw new Error("Invalid referral notification response");
     }
 
-    const row = value as { id?: unknown; status?: unknown };
+    const row = value as { id?: unknown; status?: unknown; updated_at?: unknown };
     if (typeof row.id !== "string") {
       throw new Error("Invalid referral notification id");
     }
     if (row.status !== "pending" && row.status !== "sent" && row.status !== "failed") {
       throw new Error("Invalid referral notification status");
     }
+    if (typeof row.updated_at !== "string") {
+      throw new Error("Invalid referral notification updated timestamp");
+    }
 
-    return { id: row.id, status: row.status };
+    return { id: row.id, status: row.status, updated_at: row.updated_at };
   },
 };
 

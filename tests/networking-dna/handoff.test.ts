@@ -28,6 +28,7 @@ import {
   SupabaseReferralPlanRepository,
   createPublicToken,
   fingerprintSnapshot,
+  isStalePendingNotification,
 } from "../../server/connectrobot/referral-plan-repository.js";
 import type { ReferralPlanSnapshotPayload } from "../../server/connectrobot/referral-plan-schemas.js";
 import {
@@ -76,6 +77,17 @@ describe("ConnectROBOT handoff helpers", () => {
     expect(normalizeUsPhone("(512) 555-0142")).toBe("+15125550142");
     expect(normalizeUsPhone("+44 20 7946 0958")).toBe("+442079460958");
     expect(() => normalizeUsPhone("123")).toThrow("valid mobile number");
+  });
+
+  it("treats only old pending notification reservations as stale", () => {
+    const now = new Date("2026-08-30T16:00:00.000Z");
+
+    expect(
+      isStalePendingNotification("2026-08-30T15:57:59.000Z", now),
+    ).toBe(true);
+    expect(
+      isStalePendingNotification("2026-08-30T15:58:30.000Z", now),
+    ).toBe(false);
   });
 
   it("creates secure-looking public tokens and stable snapshot fingerprints", () => {
@@ -514,6 +526,125 @@ describe("ConnectROBOT Supabase handoff repository", () => {
         }),
       }),
     );
+  });
+
+  it("does not resend for a fresh pending notification reservation", async () => {
+    const update = vi.fn();
+    const supabase = {
+      from: vi.fn(() => ({
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn(async () => ({
+              data: null,
+              error: { code: "23505", message: "duplicate key value" },
+            })),
+          })),
+        })),
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(async () => ({
+                  data: {
+                    id: "00000000-0000-4000-8000-000000000444",
+                    status: "pending",
+                    updated_at: new Date().toISOString(),
+                  },
+                  error: null,
+                })),
+              })),
+            })),
+          })),
+        })),
+        update,
+      })),
+    } as unknown as SupabaseClient;
+
+    const repository = new SupabaseReferralPlanRepository(supabase);
+    const result = await repository.reserveNotification({
+      snapshot_id: SNAPSHOT_ID,
+      recipient_type: "user",
+      contact_id: CONTACT_ID,
+      destination_phone: "+15125550142",
+      notification_type: USER_REFERRAL_PLAN_SMS,
+    });
+
+    expect(result).toEqual({
+      id: "00000000-0000-4000-8000-000000000444",
+      shouldSend: false,
+      status: "pending",
+    });
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("resets a stale pending notification reservation so delivery can retry", async () => {
+    const retrySelect = vi.fn(() => ({
+      maybeSingle: vi.fn(async () => ({
+        data: { id: "00000000-0000-4000-8000-000000000444" },
+        error: null,
+      })),
+    }));
+    const staleCutoff = vi.fn(() => ({ select: retrySelect }));
+    const pendingStatus = vi.fn(() => ({ lt: staleCutoff }));
+    const notificationId = vi.fn(() => ({ eq: pendingStatus }));
+    const update = vi.fn(() => ({ eq: notificationId }));
+    const supabase = {
+      from: vi.fn(() => ({
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn(async () => ({
+              data: null,
+              error: { code: "23505", message: "duplicate key value" },
+            })),
+          })),
+        })),
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(async () => ({
+                  data: {
+                    id: "00000000-0000-4000-8000-000000000444",
+                    status: "pending",
+                    updated_at: "2026-08-30T15:57:00.000Z",
+                  },
+                  error: null,
+                })),
+              })),
+            })),
+          })),
+        })),
+        update,
+      })),
+    } as unknown as SupabaseClient;
+
+    const repository = new SupabaseReferralPlanRepository(supabase);
+    const result = await repository.reserveNotification({
+      snapshot_id: SNAPSHOT_ID,
+      recipient_type: "user",
+      contact_id: CONTACT_ID,
+      destination_phone: "+15125550142",
+      notification_type: USER_REFERRAL_PLAN_SMS,
+    });
+
+    expect(result).toEqual({
+      id: "00000000-0000-4000-8000-000000000444",
+      shouldSend: true,
+      status: "pending",
+    });
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "pending",
+        destination_phone: "+15125550142",
+        error_message: null,
+      }),
+    );
+    expect(notificationId).toHaveBeenCalledWith(
+      "id",
+      "00000000-0000-4000-8000-000000000444",
+    );
+    expect(pendingStatus).toHaveBeenCalledWith("status", "pending");
+    expect(staleCutoff).toHaveBeenCalledWith("updated_at", expect.any(String));
   });
 
   it("updates an existing session contact for the same normalized phone", async () => {

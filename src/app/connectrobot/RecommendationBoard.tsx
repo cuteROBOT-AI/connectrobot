@@ -33,6 +33,9 @@ import {
 import { TextReferralPlanModal } from "./TextReferralPlanModal";
 import type { RecommendationBoardData, ReferralPlanSnapshotResponse } from "./types";
 
+export const TEXT_REFERRAL_PLAN_FAILURE_MESSAGE =
+  "I couldn't send the text. Please check the number and try again.";
+
 interface RecommendationBoardProps {
   sessionId: string | null;
   board: RecommendationBoardData | null;
@@ -141,11 +144,7 @@ export function RecommendationBoard({
       }
     } catch (error) {
       setTextState("idle");
-      setTextError(
-        error instanceof Error
-          ? error.message
-          : "The text could not be sent. Please try again.",
-      );
+      setTextError(TEXT_REFERRAL_PLAN_FAILURE_MESSAGE);
     }
   }
 
