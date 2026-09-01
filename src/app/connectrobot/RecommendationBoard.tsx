@@ -4,6 +4,7 @@ import {
   Clipboard,
   ExternalLink,
   FileDown,
+  Link2,
   Mail,
   MessageSquareText,
   Phone,
@@ -35,6 +36,24 @@ import type { RecommendationBoardData, ReferralPlanSnapshotResponse } from "./ty
 
 export const TEXT_REFERRAL_PLAN_FAILURE_MESSAGE =
   "I couldn't send the text. Please check the number and try again.";
+export const REFERRAL_PLAN_LINK_FAILURE_LABEL = "Couldn't copy link";
+
+export async function copyReferralPlanLink({
+  sessionId,
+  createSnapshot,
+  writeClipboard,
+  onSnapshotCreated,
+}: {
+  sessionId: string;
+  createSnapshot: (sessionId: string) => Promise<ReferralPlanSnapshotResponse>;
+  writeClipboard: (value: string) => Promise<void>;
+  onSnapshotCreated: (snapshot: ReferralPlanSnapshotResponse) => void;
+}): Promise<ReferralPlanSnapshotResponse> {
+  const snapshot = await createSnapshot(sessionId);
+  await writeClipboard(snapshot.snapshot_url);
+  onSnapshotCreated(snapshot);
+  return snapshot;
+}
 
 interface RecommendationBoardProps {
   sessionId: string | null;
@@ -55,6 +74,9 @@ export function RecommendationBoard({
 }: RecommendationBoardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [exportState, setExportState] = useState<"idle" | "working" | "failed">("idle");
+  const [linkState, setLinkState] = useState<
+    "idle" | "working" | "copied" | "failed"
+  >("idle");
   const [textState, setTextState] = useState<
     "idle" | "working" | "sent" | "already_sent"
   >("idle");
@@ -87,6 +109,27 @@ export function RecommendationBoard({
     } catch {
       setCopyState("failed");
       window.setTimeout(() => setCopyState("idle"), 2400);
+    }
+  }
+
+  async function getReferralPlanLink() {
+    if (!sessionId || !hasRecommendations || linkState === "working") return;
+
+    setLinkState("working");
+    setActionMessage(null);
+
+    try {
+      await copyReferralPlanLink({
+        sessionId,
+        createSnapshot: createReferralPlanSnapshot,
+        writeClipboard: (value) => navigator.clipboard.writeText(value),
+        onSnapshotCreated,
+      });
+      setLinkState("copied");
+      window.setTimeout(() => setLinkState("idle"), 1800);
+    } catch {
+      setLinkState("failed");
+      window.setTimeout(() => setLinkState("idle"), 2400);
     }
   }
 
@@ -272,7 +315,7 @@ export function RecommendationBoard({
           <MessageSquareText className="size-4" />
           {textState === "working" ? "Sending plan" : "Text my recommendations"}
         </Button>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -288,6 +331,28 @@ export function RecommendationBoard({
           <Button variant="outline" size="sm" disabled title="Email coming soon">
             <Mail className="size-4" />
             Email
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={getReferralPlanLink}
+            disabled={actionsDisabled || linkState === "working"}
+            title={
+              hasRecommendations ? "Copy saved referral plan link" : "Create recommendations first"
+            }
+          >
+            {linkState === "copied" ? (
+              <CheckCircle2 className="size-4" />
+            ) : (
+              <Link2 className="size-4" />
+            )}
+            {linkState === "working"
+              ? "Getting link"
+              : linkState === "copied"
+                ? "Link copied"
+                : linkState === "failed"
+                  ? REFERRAL_PLAN_LINK_FAILURE_LABEL
+                  : "Get Link"}
           </Button>
           <Button
             variant="outline"

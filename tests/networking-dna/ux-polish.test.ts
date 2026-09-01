@@ -120,12 +120,34 @@ describe("ConnectROBOT v0.1 UX polish", () => {
     const source = readFileSync("src/app/connectrobot/RecommendationBoard.tsx", "utf8");
     const textActionIndex = source.indexOf("Text my recommendations");
     const exportActionIndex = source.indexOf("Export referral plan PDF");
+    const getLinkActionIndex = source.indexOf("Copy saved referral plan link");
 
     expect(textActionIndex).toBeGreaterThan(-1);
     expect(exportActionIndex).toBeGreaterThan(-1);
+    expect(getLinkActionIndex).toBeGreaterThan(-1);
     expect(textActionIndex).toBeLessThan(exportActionIndex);
+    expect(exportActionIndex).toBeLessThan(getLinkActionIndex);
     expect(source).toContain("text-[15px]");
     expect(source).toContain("transition-colors duration-150 hover:bg-[#243354]");
+  });
+
+  it("renders Get Link between Email and Copy with copied and failure states", () => {
+    const source = readFileSync("src/app/connectrobot/RecommendationBoard.tsx", "utf8");
+    const exportIndex = source.indexOf("Export");
+    const emailIndex = source.indexOf("Email coming soon");
+    const getLinkIndex = source.indexOf("Get Link");
+    const copyIndex = source.indexOf("Copy recommendation board");
+
+    expect(source).toContain("grid grid-cols-4 gap-2");
+    expect(source).toContain("Link2");
+    expect(source).toContain("getReferralPlanLink");
+    expect(source).toContain("createReferralPlanSnapshot");
+    expect(source).toContain("navigator.clipboard.writeText(value)");
+    expect(source).toContain("Link copied");
+    expect(source).toContain("Couldn't copy link");
+    expect(exportIndex).toBeLessThan(emailIndex);
+    expect(emailIndex).toBeLessThan(getLinkIndex);
+    expect(getLinkIndex).toBeLessThan(copyIndex);
   });
 
   it("shows duplicate-send feedback as a modal completion state", () => {
