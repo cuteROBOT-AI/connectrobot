@@ -528,6 +528,67 @@ describe("ConnectROBOT Supabase handoff repository", () => {
     );
   });
 
+  it("reuses an existing snapshot for the same session and board fingerprint", async () => {
+    const snapshotPayload = buildSnapshotPayload();
+    const insert = vi.fn();
+    const existingSnapshot = {
+      id: SNAPSHOT_ID,
+      session_id: SESSION_ID,
+      public_token: "existing-public-token-for-board",
+      board_fingerprint: fingerprintSnapshot(snapshotPayload),
+      snapshot: snapshotPayload,
+      created_at: snapshotPayload.created_at,
+      created_by_contact_id: null,
+    };
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === "networking_sessions") {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(async () => ({
+                  data: {
+                    id: SESSION_ID,
+                    current_summary: snapshotPayload.scenario_summary,
+                    current_recommendations: snapshotPayload.recommendation_board,
+                  },
+                  error: null,
+                })),
+              })),
+            })),
+          };
+        }
+
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                order: vi.fn(() => ({
+                  limit: vi.fn(() => ({
+                    maybeSingle: vi.fn(async () => ({
+                      data: existingSnapshot,
+                      error: null,
+                    })),
+                  })),
+                })),
+              })),
+            })),
+          })),
+          insert,
+        };
+      }),
+    } as unknown as SupabaseClient;
+
+    const repository = new SupabaseReferralPlanRepository(supabase);
+    const result = await repository.createOrReuseSnapshot(SESSION_ID);
+
+    expect(result).toEqual({
+      row: existingSnapshot,
+      reused: true,
+    });
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it("does not resend for a fresh pending notification reservation", async () => {
     const update = vi.fn();
     const supabase = {
